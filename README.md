@@ -63,7 +63,7 @@ node proxy-server.js
 
 5. **打开浏览器**
 
-访问 `http://localhost:3000` 即可开始游戏。
+访问 `http://localhost:4315` 即可开始游戏。
 
 ## 📁 项目结构
 
