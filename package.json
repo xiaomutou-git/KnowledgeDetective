@@ -1,0 +1,30 @@
+{
+  "name": "knowledge-detective",
+  "version": "1.0.0",
+  "description": "把枯燥的知识，变成一场你来破案的推理游戏",
+  "main": "proxy-server.js",
+  "scripts": {
+    "start": "node proxy-server.js",
+    "test": "node _test_custom.js"
+  },
+  "keywords": [
+    "education",
+    "game",
+    "ai",
+    "learning",
+    "detective"
+  ],
+  "author": "xiaomu <2581687833@qq.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaomutou-git/KnowledgeDetective.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xiaomutou-git/KnowledgeDetective/issues"
+  },
+  "homepage": "https://github.com/xiaomutou-git/KnowledgeDetective#readme"
+}
