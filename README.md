@@ -27,8 +27,8 @@
 1. **克隆项目**
 
 ```bash
-git clone git@github.com:xiaomutou-git/-.git
-cd -
+git clone git@github.com:xiaomutou-git/KnowledgeDetective.git
+cd KnowledgeDetective
 ```
 
 2. **安装依赖**
