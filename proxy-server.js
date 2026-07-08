@@ -14,13 +14,18 @@
  * - API Key 通过环境变量配置，保护密钥安全
  * 
  * 使用方法：
- * 1. 安装依赖：npm install dotenv --save
+ * 1. 安装依赖：pnpm install
  * 2. 配置 API Key：
  *    - 复制 .env.example 为 .env
  *    - 在 .env 文件中填写您的 SiliconFlow API Key
  *    - 或设置系统环境变量 AI_API_KEY
  * 3. 启动服务：node proxy-server.js
- * 4. 打开 knowledge-detective-noir.html 使用
+ * 4. 打开浏览器访问 http://localhost:4315/
+ *    - 首页：/
+ *    - 功能页：/features
+ *    - 案例页：/cases
+ *    - 指南页：/guide
+ *    - 推理游戏：/play
  */
 
 const http = require('http');
@@ -345,8 +350,15 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 静态文件服务
-  let filePath = pathname === '/' ? '/knowledge-detective-noir.html' : pathname;
+  // 静态文件服务与页面路由映射
+  const PAGE_ROUTES = {
+    '/': '/index.html',
+    '/features': '/features.html',
+    '/cases': '/cases.html',
+    '/guide': '/guide.html',
+    '/play': '/play.html'
+  };
+  let filePath = PAGE_ROUTES[pathname] || pathname;
   filePath = path.join(__dirname, filePath);
   
   // 路径规范化和安全检查，防止目录遍历攻击
@@ -373,7 +385,11 @@ server.listen(PORT, () => {
   console.log('  知识侦探 - AI 代理服务器');
   console.log('='.repeat(60));
   console.log(`  服务地址：http://localhost:${PORT}`);
-  console.log(`  演示页面：http://localhost:${PORT}/knowledge-detective-noir.html`);
+  console.log(`  首页：http://localhost:${PORT}/`);
+  console.log(`  功能页：http://localhost:${PORT}/features`);
+  console.log(`  案例页：http://localhost:${PORT}/cases`);
+  console.log(`  指南页：http://localhost:${PORT}/guide`);
+  console.log(`  推理游戏：http://localhost:${PORT}/play`);
   console.log(`  API 地址：http://localhost:${PORT}/api/generate`);
   console.log(`  健康检查：http://localhost:${PORT}/api/health`);
   console.log('='.repeat(60));
