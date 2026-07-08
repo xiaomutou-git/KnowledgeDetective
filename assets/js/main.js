@@ -3,7 +3,8 @@
    =========================================================
  * @description 为产品官网营销页面（首页、功能、案例、指南）提供公共交互能力：
  *              注入响应式导航与页脚、移动端抽屉菜单、滚动显隐动画、
- *              Hero 首屏入场动画、导航栏滚动阴影、FAQ 手风琴。
+ *              Hero 首屏入场动画、导航栏滚动阴影、FAQ 手风琴、
+ *              GitHub Pages 链接自适应、滚动进度条、返回顶部、页面淡入淡出。
  * @author 知识侦探团队
  * @date 2026-07-08
  * @usage 在 index.html / features.html / cases.html / guide.html 底部引入本文件。
@@ -59,13 +60,80 @@
     }
   ];
 
+  /**
+   * 需要自适应为 .html 后缀的内部页面路径集合
+   * @constant {Object<string, string>}
+   */
+  const HTML_PAGE_MAP = {
+    '/': '/index.html',
+    '/features': '/features.html',
+    '/cases': '/cases.html',
+    '/guide': '/guide.html',
+    '/play': '/play.html'
+  };
+
+  /* =========================================================
+     环境判断与链接处理
+     ========================================================= */
+
+  /**
+   * 判断当前是否处于 GitHub Pages 等静态托管环境
+   * @description 通过 hostname 判断：非 localhost / 127.0.0.1 即视为线上静态托管。
+   *              在此类环境下，内部页面链接需要添加 .html 后缀。
+   * @returns {boolean} 是否为静态托管环境
+   */
+  function isGitHubPagesEnvironment() {
+    try {
+      const hostname = window.location.hostname || '';
+      return hostname !== 'localhost' && hostname !== '127.0.0.1';
+    } catch (err) {
+      console.warn('[main.js] 判断运行环境失败：', err);
+      return false;
+    }
+  }
+
+  /**
+   * 根据当前环境构建最终链接
+   * @param {string} path - 原始路径，例如 /features 或 /guide#quickstart
+   * @returns {string} 处理后的可访问链接
+   * @throws {Error} 不会主动抛出异常，参数非字符串时返回空字符串
+   */
+  function buildLink(path) {
+    try {
+      if (typeof path !== 'string') return '';
+      if (path.indexOf('http') === 0) return path;
+      if (!isGitHubPagesEnvironment()) return path;
+
+      // 分离哈希与查询参数
+      const hashIndex = path.indexOf('#');
+      const queryIndex = path.indexOf('?');
+      let base = path;
+      let suffix = '';
+
+      if (hashIndex !== -1) {
+        base = path.substring(0, hashIndex);
+        suffix = path.substring(hashIndex);
+      } else if (queryIndex !== -1) {
+        base = path.substring(0, queryIndex);
+        suffix = path.substring(queryIndex);
+      }
+
+      const mapped = HTML_PAGE_MAP[base];
+      if (mapped) return mapped + suffix;
+      return path;
+    } catch (err) {
+      console.warn('[main.js] 构建链接失败：', err);
+      return path;
+    }
+  }
+
   /* =========================================================
      工具函数
      ========================================================= */
 
   /**
    * 获取当前页面路径，用于高亮对应导航项
-   * @returns {string} 当前页面路径，例如 "/features"
+   * @returns {string} 当前页面路径，例如 "/features" 或 "/features.html"
    */
   function getCurrentPath() {
     try {
@@ -77,16 +145,42 @@
   }
 
   /**
-   * 判断当前页面是否为指定路径（支持根路径与精确匹配）
+   * 将带 .html 后缀的路径归一化为无后缀路径，便于与高亮配置比较
+   * @param {string} path - 需要归一化的路径
+   * @returns {string} 归一化后的路径，例如 /features.html -> /features
+   */
+  function normalizePath(path) {
+    try {
+      if (typeof path !== 'string') return '/';
+      if (path.toLowerCase().endsWith('.html')) {
+        return path.substring(0, path.length - 5) || '/';
+      }
+      return path;
+    } catch (err) {
+      console.warn('[main.js] 归一化路径失败：', err);
+      return path;
+    }
+  }
+
+  /**
+   * 判断当前页面是否为指定路径（支持根路径、精确匹配及 .html 后缀兼容）
    * @param {string} path - 导航项路径
    * @param {string} current - 当前页面路径
    * @returns {boolean} 是否匹配
    */
   function isActivePath(path, current) {
-    if (path === '/') {
-      return current === '/' || current === '/index.html';
+    try {
+      const normalizedCurrent = normalizePath(current);
+      const normalizedPath = normalizePath(path);
+
+      if (normalizedPath === '/') {
+        return normalizedCurrent === '/' || normalizedCurrent === '/index';
+      }
+      return normalizedCurrent === normalizedPath || normalizedCurrent.startsWith(normalizedPath + '/');
+    } catch (err) {
+      console.warn('[main.js] 判断高亮路径失败：', err);
+      return false;
     }
-    return current === path || current.startsWith(path + '/');
   }
 
   /**
@@ -120,6 +214,7 @@
    * 注入公共顶部导航
    * @description 在页面 #site-header 容器（或 body 首个子元素前）插入响应式导航栏。
    *              包含品牌、桌面导航链接、状态徽章、移动端菜单按钮及抽屉菜单。
+   *              在 GitHub Pages 环境下自动为内部链接追加 .html 后缀。
    * @throws {Error} 当无法创建或插入导航容器时可能抛出异常（已被 try-catch 包裹）
    */
   function injectHeader() {
@@ -127,17 +222,17 @@
       const current = getCurrentPath();
       const navLinksHtml = NAV_ITEMS.map(function (item) {
         const activeClass = isActivePath(item.path, current) ? ' active' : '';
-        return '<a class="nav-link' + activeClass + '" href="' + item.path + '">' + item.label + '</a>';
+        return '<a class="nav-link' + activeClass + '" href="' + buildLink(item.path) + '">' + item.label + '</a>';
       }).join('');
 
       const mobileNavLinksHtml = NAV_ITEMS.map(function (item) {
         const activeClass = isActivePath(item.path, current) ? ' active' : '';
-        return '<a class="nav-link' + activeClass + '" href="' + item.path + '">' + item.label + '</a>';
+        return '<a class="nav-link' + activeClass + '" href="' + buildLink(item.path) + '">' + item.label + '</a>';
       }).join('');
 
       const headerHtml =
         '<div class="topbar">' +
-          '<a class="brand" href="/" aria-label="返回知识侦探首页">' +
+          '<a class="brand" href="' + buildLink('/') + '" aria-label="返回知识侦探首页">' +
             createBrandLogo() +
             '<span class="brand-text">' +
               '<span class="brand-main">知识侦探</span>' +
@@ -179,6 +274,7 @@
   /**
    * 注入公共页脚
    * @description 在页面 #site-footer 容器（或 body 末尾）插入页脚，包含品牌介绍、链接分组与版权信息。
+   *              在 GitHub Pages 环境下自动为内部链接追加 .html 后缀。
    * @throws {Error} 当无法创建或插入页脚容器时可能抛出异常（已被 try-catch 包裹）
    */
   function injectFooter() {
@@ -187,7 +283,7 @@
         const linksHtml = col.links.map(function (link) {
           const isExternal = link.path.indexOf('http') === 0;
           const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-          return '<li><a href="' + link.path + '"' + attrs + '>' + link.label + '</a></li>';
+          return '<li><a href="' + buildLink(link.path) + '"' + attrs + '>' + link.label + '</a></li>';
         }).join('');
         return '<div class="footer-col"><h5>' + col.title + '</h5><ul>' + linksHtml + '</ul></div>';
       }).join('');
@@ -222,6 +318,131 @@
   }
 
   /* =========================================================
+     页面级交互增强
+     ========================================================= */
+
+  /**
+   * 初始化页面切换淡入淡出效果
+   * @description 监听 beforeunload/unload 事件，在页面卸载前为 body 添加
+   *              page-unloading 类触发淡出动画；页面加载完成后添加 page-loaded
+   *              类触发各区块依次淡入。
+   */
+  function initPageTransitions() {
+    try {
+      const body = document.body;
+      if (!body) return;
+
+      // 页面加载时先设置为不可见，随后触发淡入
+      body.classList.add('page-loading');
+
+      window.addEventListener('beforeunload', function () {
+        try {
+          body.classList.add('page-unloading');
+        } catch (err) {
+          console.warn('[main.js] 页面卸载动画触发失败：', err);
+        }
+      });
+
+      window.addEventListener('pageshow', function (event) {
+        try {
+          // 处理浏览器后退缓存（bfcache）情况
+          if (event.persisted) {
+            body.classList.remove('page-loading', 'page-unloading');
+            body.classList.add('page-loaded');
+          }
+        } catch (err) {
+          console.warn('[main.js] 页面显示事件处理失败：', err);
+        }
+      });
+
+      window.requestAnimationFrame(function () {
+        try {
+          window.setTimeout(function () {
+            body.classList.remove('page-loading');
+            body.classList.add('page-loaded');
+          }, 50);
+        } catch (err) {
+          console.warn('[main.js] 页面淡入触发失败：', err);
+        }
+      });
+    } catch (err) {
+      console.error('[main.js] 初始化页面切换动画失败：', err);
+    }
+  }
+
+  /**
+   * 初始化滚动进度条
+   * @description 在页面顶部创建固定进度条，根据滚动位置实时更新宽度，
+   *              并在页面滚动超过阈值时显示返回顶部按钮。
+   */
+  function initScrollProgress() {
+    try {
+      const body = document.body;
+      if (!body) return;
+
+      let progressBar = document.getElementById('scroll-progress-bar');
+      if (!progressBar) {
+        progressBar = document.createElement('div');
+        progressBar.id = 'scroll-progress-bar';
+        progressBar.className = 'scroll-progress-bar';
+        progressBar.setAttribute('role', 'progressbar');
+        progressBar.setAttribute('aria-label', '页面滚动进度');
+        progressBar.setAttribute('aria-valuemin', '0');
+        progressBar.setAttribute('aria-valuemax', '100');
+        progressBar.setAttribute('aria-valuenow', '0');
+        body.appendChild(progressBar);
+      }
+
+      let backToTop = document.getElementById('back-to-top');
+      if (!backToTop) {
+        backToTop = document.createElement('button');
+        backToTop.id = 'back-to-top';
+        backToTop.className = 'back-to-top';
+        backToTop.setAttribute('aria-label', '返回页面顶部');
+        backToTop.setAttribute('title', '返回顶部');
+        backToTop.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<line x1="12" y1="19" x2="12" y2="5"></line>' +
+          '<polyline points="5 12 12 5 19 12"></polyline>' +
+          '</svg>';
+        body.appendChild(backToTop);
+      }
+
+      function updateScrollState() {
+        try {
+          const scrollTop = window.scrollY || window.pageYOffset || 0;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const progress = docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+
+          progressBar.style.width = progress + '%';
+          progressBar.setAttribute('aria-valuenow', String(progress));
+
+          if (scrollTop > 400) {
+            backToTop.classList.add('visible');
+          } else {
+            backToTop.classList.remove('visible');
+          }
+        } catch (err) {
+          console.warn('[main.js] 更新滚动进度失败：', err);
+        }
+      }
+
+      backToTop.addEventListener('click', function () {
+        try {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+          console.warn('[main.js] 返回顶部失败：', err);
+        }
+      });
+
+      window.addEventListener('scroll', updateScrollState, { passive: true });
+      updateScrollState();
+    } catch (err) {
+      console.error('[main.js] 初始化滚动进度条失败：', err);
+    }
+  }
+
+  /* =========================================================
      移动端菜单
      ========================================================= */
 
@@ -241,10 +462,14 @@
        * @param {boolean} [force] - 强制指定展开(true)或收起(false)
        */
       function toggleMenu(force) {
-        const shouldOpen = typeof force === 'boolean' ? force : !mobileNav.classList.contains('open');
-        mobileNav.classList.toggle('open', shouldOpen);
-        menuBtn.classList.toggle('active', shouldOpen);
-        menuBtn.setAttribute('aria-expanded', String(shouldOpen));
+        try {
+          const shouldOpen = typeof force === 'boolean' ? force : !mobileNav.classList.contains('open');
+          mobileNav.classList.toggle('open', shouldOpen);
+          menuBtn.classList.toggle('active', shouldOpen);
+          menuBtn.setAttribute('aria-expanded', String(shouldOpen));
+        } catch (err) {
+          console.warn('[main.js] 切换菜单状态失败：', err);
+        }
       }
 
       menuBtn.addEventListener('click', function () {
@@ -258,10 +483,25 @@
       });
 
       document.addEventListener('click', function (event) {
-        if (!mobileNav.classList.contains('open')) return;
-        const target = event.target;
-        if (!menuBtn.contains(target) && !mobileNav.contains(target)) {
-          toggleMenu(false);
+        try {
+          if (!mobileNav.classList.contains('open')) return;
+          const target = event.target;
+          if (!menuBtn.contains(target) && !mobileNav.contains(target)) {
+            toggleMenu(false);
+          }
+        } catch (err) {
+          console.warn('[main.js] 点击外部关闭菜单失败：', err);
+        }
+      });
+
+      // 窗口尺寸恢复为桌面时自动收起菜单
+      window.addEventListener('resize', function () {
+        try {
+          if (window.innerWidth > 1024 && mobileNav.classList.contains('open')) {
+            toggleMenu(false);
+          }
+        } catch (err) {
+          console.warn('[main.js] 窗口resize关闭菜单失败：', err);
         }
       });
     } catch (err) {
@@ -291,9 +531,13 @@
 
       const observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
+          try {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          } catch (err) {
+            console.warn('[main.js] 处理滚动动画条目失败：', err);
           }
         });
       }, observerOptions);
@@ -324,7 +568,11 @@
       if (!body) return;
 
       window.requestAnimationFrame(function () {
-        body.classList.add('is-loaded');
+        try {
+          body.classList.add('is-loaded');
+        } catch (err) {
+          console.warn('[main.js] 添加 is-loaded 类失败：', err);
+        }
       });
     } catch (err) {
       console.error('[main.js] 初始化 Hero 动画失败：', err);
@@ -381,21 +629,71 @@
         if (!question) return;
 
         question.addEventListener('click', function () {
-          const isOpen = item.classList.contains('open');
+          try {
+            const isOpen = item.classList.contains('open');
 
-          if (accordion !== false) {
-            faqItems.forEach(function (other) {
-              if (other !== item) {
-                other.classList.remove('open');
-              }
-            });
+            if (accordion !== false) {
+              faqItems.forEach(function (other) {
+                if (other !== item) {
+                  other.classList.remove('open');
+                }
+              });
+            }
+
+            item.classList.toggle('open', !isOpen);
+          } catch (err) {
+            console.warn('[main.js] FAQ 点击切换失败：', err);
           }
-
-          item.classList.toggle('open', !isOpen);
         });
       });
     } catch (err) {
       console.error('[main.js] 初始化 FAQ 失败：', err);
+    }
+  }
+
+  /* =========================================================
+     外部/硬编码链接自适应
+     ========================================================= */
+
+  /**
+   * 为页面中硬编码的内部链接自动追加 .html 后缀（GitHub Pages 环境下）
+   * @description 扫描页面中所有 href 属性匹配 HTML_PAGE_MAP 的 a 标签，
+   *              在静态托管环境下将其重写为带 .html 后缀的链接；
+   *              避免逐页手动修改 HTML 文件中的 /play、/features 等链接。
+   */
+  function adaptStaticLinks() {
+    try {
+      if (!isGitHubPagesEnvironment()) return;
+
+      const links = document.querySelectorAll('a[href]');
+      links.forEach(function (link) {
+        try {
+          const href = link.getAttribute('href') || '';
+          if (href.indexOf('http') === 0) return;
+
+          const hashIndex = href.indexOf('#');
+          const queryIndex = href.indexOf('?');
+          let base = href;
+          let suffix = '';
+
+          if (hashIndex !== -1) {
+            base = href.substring(0, hashIndex);
+            suffix = href.substring(hashIndex);
+          } else if (queryIndex !== -1) {
+            base = href.substring(0, queryIndex);
+            suffix = href.substring(queryIndex);
+          }
+
+          const mapped = HTML_PAGE_MAP[base];
+          if (mapped && mapped !== base + suffix) {
+            link.setAttribute('href', mapped + suffix);
+          }
+        } catch (err) {
+          console.warn('[main.js] 自适应单个链接失败：', err);
+        }
+      });
+    } catch (err) {
+      console.error('[main.js] 自适应静态链接失败：', err);
     }
   }
 
@@ -405,12 +703,16 @@
 
   /**
    * 初始化公共交互
-   * @description 页面 DOM 就绪后依次注入导航、页脚，并初始化菜单、滚动动画、Hero 动画、导航阴影、FAQ。
+   * @description 页面 DOM 就绪后依次注入导航、页脚，并初始化菜单、滚动动画、
+   *              Hero 动画、导航阴影、FAQ、页面过渡、滚动进度条及链接自适应。
    */
   function init() {
     try {
       injectHeader();
       injectFooter();
+      adaptStaticLinks();
+      initPageTransitions();
+      initScrollProgress();
       initMobileMenu();
       initScrollAnimations();
       initHeroAnimations();
