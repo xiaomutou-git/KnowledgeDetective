@@ -43,6 +43,30 @@
         <span>了解功能</span>
       </a>
     </div>
+
+    <!-- Hero 装饰性视觉元素 -->
+    <div class="hero-decor" aria-hidden="true">
+      <svg class="decor-magnifier" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="42" cy="42" r="28" stroke="currentColor" stroke-width="3"/>
+        <line x1="62" y1="62" x2="90" y2="90" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="42" cy="42" r="10" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+      </svg>
+      <svg class="decor-fingerprint" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 10 C30 10 10 30 10 50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M50 18 C34 18 18 34 18 50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M50 26 C38 26 26 38 26 50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M50 34 C42 34 34 42 34 50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M50 74 C58 74 66 66 66 50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M50 82 C62 82 74 70 74 50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M50 90 C66 90 82 74 82 50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <svg class="decor-stamp" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="12" y="12" width="76" height="76" rx="4" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4"/>
+        <circle cx="50" cy="50" r="24" stroke="currentColor" stroke-width="2"/>
+        <text x="50" y="55" text-anchor="middle" font-size="16" fill="currentColor" font-family="'Noto Serif SC', serif" font-weight="600">机密</text>
+      </svg>
+    </div>
+
     <div class="stats-row">
       <div class="stat-item">
         <div class="stat-num">12+</div>
@@ -68,7 +92,7 @@
   </section>
 
   <!-- 特色优势 -->
-  <section class="section" id="features">
+  <section class="section section-alt" id="features">
     <div class="section-head fade-in-up">
       <div class="section-title-wrap">
         <h2>核心<em>优势</em></h2>
@@ -138,8 +162,25 @@
           <h3>贝叶斯定理 <em>Bayes' Theorem</em></h3>
           <div class="dossier-sub">一份罕见病检测报告的真伪</div>
           <div class="dossier-desc">当检测结果为阳性时，真正患病的概率到底是多少？一场关于先验、假阳性与条件概率的推理。</div>
+          <div class="dossier-meta">
+            <div class="dossier-tags">
+              <span class="dossier-tag">条件概率</span>
+              <span class="dossier-tag">先验与后验</span>
+            </div>
+            <div class="dossier-difficulty">
+              <span>难度</span>
+              <span class="difficulty-dots" aria-label="难度 3/5">
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot"></span>
+                <span class="difficulty-dot"></span>
+              </span>
+            </div>
+          </div>
         </div>
         <div class="dossier-right">
+          <div class="dossier-action">阅读卷宗</div>
           <div class="dossier-arrow">→</div>
         </div>
       </a>
@@ -152,8 +193,25 @@
           <h3>复利效应 <em>Compound Interest</em></h3>
           <div class="dossier-sub">魔法师递来的两枚硬币</div>
           <div class="dossier-desc">每天翻倍的一分钱，与每天一百元的现金，一个月后哪个更多？关于时间、增长与指数的一课。</div>
+          <div class="dossier-meta">
+            <div class="dossier-tags">
+              <span class="dossier-tag">指数增长</span>
+              <span class="dossier-tag">时间价值</span>
+            </div>
+            <div class="dossier-difficulty">
+              <span>难度</span>
+              <span class="difficulty-dots" aria-label="难度 2/5">
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot"></span>
+                <span class="difficulty-dot"></span>
+                <span class="difficulty-dot"></span>
+              </span>
+            </div>
+          </div>
         </div>
         <div class="dossier-right">
+          <div class="dossier-action">阅读卷宗</div>
           <div class="dossier-arrow">→</div>
         </div>
       </a>
@@ -166,8 +224,25 @@
           <h3>幸存者偏差 <em>Survivorship Bias</em></h3>
           <div class="dossier-sub">飞机装甲与缺失的数据</div>
           <div class="dossier-desc">战争期间应加固飞机的哪一部分？答案不在飞回来的飞机上，而在于那些没能回来的。</div>
+          <div class="dossier-meta">
+            <div class="dossier-tags">
+              <span class="dossier-tag">抽样偏差</span>
+              <span class="dossier-tag">沉默数据</span>
+            </div>
+            <div class="dossier-difficulty">
+              <span>难度</span>
+              <span class="difficulty-dots" aria-label="难度 2/5">
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot"></span>
+                <span class="difficulty-dot"></span>
+                <span class="difficulty-dot"></span>
+              </span>
+            </div>
+          </div>
         </div>
         <div class="dossier-right">
+          <div class="dossier-action">阅读卷宗</div>
           <div class="dossier-arrow">→</div>
         </div>
       </a>
@@ -180,8 +255,25 @@
           <h3>囚徒困境 <em>Prisoner's Dilemma</em></h3>
           <div class="dossier-sub">两个理性人的共同悲剧</div>
           <div class="dossier-desc">你和同伙被分别关押，无法沟通。在对方做出什么选择都未知的情况下，你该如何决定？</div>
+          <div class="dossier-meta">
+            <div class="dossier-tags">
+              <span class="dossier-tag">纳什均衡</span>
+              <span class="dossier-tag">占优策略</span>
+            </div>
+            <div class="dossier-difficulty">
+              <span>难度</span>
+              <span class="difficulty-dots" aria-label="难度 3/5">
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot filled"></span>
+                <span class="difficulty-dot"></span>
+                <span class="difficulty-dot"></span>
+              </span>
+            </div>
+          </div>
         </div>
         <div class="dossier-right">
+          <div class="dossier-action">阅读卷宗</div>
           <div class="dossier-arrow">→</div>
         </div>
       </a>
@@ -189,7 +281,7 @@
   </section>
 
   <!-- 团队介绍 -->
-  <section class="section" id="team">
+  <section class="section section-alt" id="team">
     <div class="section-head fade-in-up">
       <div class="section-title-wrap">
         <h2>侦探<em>事务所</em></h2>
@@ -202,19 +294,36 @@
     </div>
     <div class="team-grid">
       <div class="team-card fade-in-up">
-        <div class="team-avatar">侦</div>
+        <div class="team-badge" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="20" cy="20" r="12"/>
+            <line x1="32" y1="32" x2="42" y2="42"/>
+            <path d="M14 20h12" opacity="0.5"/>
+          </svg>
+        </div>
         <h4>首席侦探</h4>
         <div class="team-role">产品策划 & 叙事设计</div>
         <p>负责将抽象知识转化为引人入胜的推理剧情，设计每一条线索与反转，让学习变成探案。</p>
       </div>
       <div class="team-card fade-in-up">
-        <div class="team-avatar">码</div>
+        <div class="team-badge" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="24" cy="24" r="7"/>
+            <path d="M24 10v7M24 31v7M10 24h7M31 24h7"/>
+            <rect x="10" y="10" width="28" height="28" rx="4" opacity="0.15"/>
+          </svg>
+        </div>
         <h4>技术探员</h4>
         <div class="team-role">前端工程 & AI 对接</div>
         <p>构建复古档案风格界面，实现 AI 剧本生成与本地档案存储，确保流畅的跨端体验。</p>
       </div>
       <div class="team-card fade-in-up">
-        <div class="team-avatar">识</div>
+        <div class="team-badge" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="6" width="32" height="38" rx="2"/>
+            <path d="M8 14h32M14 22h20M14 30h14"/>
+          </svg>
+        </div>
         <h4>知识顾问</h4>
         <div class="team-role">内容教研 & 逻辑校验</div>
         <p>审核每个案卷的知识准确性与教育价值，确保推理过程严谨、解析清晰、要点到位。</p>
