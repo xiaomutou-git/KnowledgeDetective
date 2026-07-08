@@ -2,7 +2,8 @@
    知识侦探 · 公共前端交互脚本
    =========================================================
  * @description 为产品官网营销页面（首页、功能、案例、指南）提供公共交互能力：
- *              注入响应式导航与页脚、移动端抽屉菜单、滚动显隐动画、FAQ 手风琴。
+ *              注入响应式导航与页脚、移动端抽屉菜单、滚动显隐动画、
+ *              Hero 首屏入场动画、导航栏滚动阴影、FAQ 手风琴。
  * @author 知识侦探团队
  * @date 2026-07-08
  * @usage 在 index.html / features.html / cases.html / guide.html 底部引入本文件。
@@ -306,6 +307,61 @@
   }
 
   /* =========================================================
+     Hero 首屏入场动画
+     ========================================================= */
+
+  /**
+   * 初始化 Hero 首屏入场动画
+   * @description 当页面存在 .hero 区域时，在下一帧为 body 添加 is-loaded 类，
+   *              触发 CSS 中定义的 stagger 入场动画（kicker、标题、副标题、CTA、数据栏、装饰元素）。
+   */
+  function initHeroAnimations() {
+    try {
+      const hero = document.querySelector('.hero');
+      if (!hero) return;
+
+      const body = document.body;
+      if (!body) return;
+
+      window.requestAnimationFrame(function () {
+        body.classList.add('is-loaded');
+      });
+    } catch (err) {
+      console.error('[main.js] 初始化 Hero 动画失败：', err);
+    }
+  }
+
+  /* =========================================================
+     导航栏滚动阴影
+     ========================================================= */
+
+  /**
+   * 初始化导航栏滚动状态
+   * @description 监听窗口滚动事件，当页面滚动超过 10px 时为 .topbar 添加 is-scrolled 类，
+   *              从而产生细微阴影与边框变化，增强页面层次感。
+   */
+  function initHeaderScroll() {
+    try {
+      const topbar = document.querySelector('.topbar');
+      if (!topbar) return;
+
+      function updateScrollState() {
+        try {
+          const scrollY = window.scrollY || window.pageYOffset || 0;
+          topbar.classList.toggle('is-scrolled', scrollY > 10);
+        } catch (err) {
+          console.warn('[main.js] 更新滚动状态失败：', err);
+        }
+      }
+
+      window.addEventListener('scroll', updateScrollState, { passive: true });
+      updateScrollState();
+    } catch (err) {
+      console.error('[main.js] 初始化导航栏滚动状态失败：', err);
+    }
+  }
+
+  /* =========================================================
      FAQ 手风琴
      ========================================================= */
 
@@ -349,7 +405,7 @@
 
   /**
    * 初始化公共交互
-   * @description 页面 DOM 就绪后依次注入导航、页脚，并初始化菜单、滚动动画、FAQ。
+   * @description 页面 DOM 就绪后依次注入导航、页脚，并初始化菜单、滚动动画、Hero 动画、导航阴影、FAQ。
    */
   function init() {
     try {
@@ -357,6 +413,8 @@
       injectFooter();
       initMobileMenu();
       initScrollAnimations();
+      initHeroAnimations();
+      initHeaderScroll();
       initFaq(true);
     } catch (err) {
       console.error('[main.js] 公共脚本初始化失败：', err);

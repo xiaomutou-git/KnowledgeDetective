@@ -24,3 +24,6 @@ Thumbs.db
 # 构建产物
 dist/
 build/
+
+# 验证截图目录
+verification/
