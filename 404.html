@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识侦探 · 正在调取档案</title>
+  <meta name="description" content="知识侦探 - 正在调取档案，请稍候">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       知识侦探 · 404 档案调取页
+       =========================================================
+     * @description GitHub Pages 404 兼容页：当用户访问 /features 等无后缀
+     *              路径时，显示侦探档案风格的加载状态，并自动重定向到
+     *              对应的 .html 静态文件；若路径无效则提示档案未找到。
+     * @author 知识侦探团队
+     * @date 2026-07-08
+     * ========================================================= */
+
+    :root {
+      --paper-00: #f5f0e6;
+      --paper-0: #faf6ee;
+      --paper-1: #f0ead9;
+      --paper-2: #e8e0cc;
+      --paper-border: #d4cdbc;
+      --ink-00: #1a1a1a;
+      --ink-1: #3d3d3d;
+      --ink-2: #5a5a5a;
+      --ink-3: #7a7a7a;
+      --vermilion: #b83a2b;
+      --vermilion-deep: #962e22;
+      --indigo: #2c3e6b;
+      --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--paper-00);
+      color: var(--ink-00);
+      font-family: 'Noto Serif SC', serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    /* 纸张纹理背景 */
+    .archive-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: var(--paper-00);
+      pointer-events: none;
+    }
+
+    .archive-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.82 0 0 0 0 0.78 0 0 0 0 0.68 0 0 0 0.035 0 0 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      opacity: 0.75;
+    }
+
+    .archive-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(26,26,26,0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(26,26,26,0.04) 0%, transparent 50%);
+    }
+
+    /* 内容容器 */
+    .archive-container {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    /* 档案印章 */
+    .archive-stamp {
+      width: 88px;
+      height: 88px;
+      border: 2px solid var(--paper-border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+      position: relative;
+      color: var(--ink-2);
+      animation: stamp-appear 0.8s var(--ease-out) forwards;
+    }
+
+    .archive-stamp::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 1px dashed var(--paper-border);
+      border-radius: 2px;
+    }
+
+    .archive-stamp svg {
+      width: 40px;
+      height: 40px;
+      animation: magnifier-scan 2s ease-in-out infinite;
+    }
+
+    @keyframes stamp-appear {
+      from { opacity: 0; transform: scale(0.92) rotate(-3deg); }
+      to { opacity: 1; transform: scale(1) rotate(0); }
+    }
+
+    @keyframes magnifier-scan {
+      0%, 100% { transform: translateX(-3px) rotate(-8deg); }
+      50% { transform: translateX(3px) rotate(8deg); }
+    }
+
+    /* 状态标题 */
+    .archive-title {
+      font-family: 'Fraunces', 'Noto Serif SC', serif;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      color: var(--ink-00);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: rise 0.7s var(--ease-out) 0.2s forwards;
+    }
+
+    .archive-title em {
+      font-style: italic;
+      color: var(--vermilion);
+    }
+
+    .archive-subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: rise 0.7s var(--ease-out) 0.32s forwards;
+    }
+
+    /* 档案标签动画 */
+    .file-tags {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 48px;
+      max-width: 520px;
+    }
+
+    .file-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      padding: 10px 18px;
+      border: 1px solid var(--paper-border);
+      background: var(--paper-0);
+      color: var(--ink-1);
+      border-radius: 2px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: tag-rise 0.5s var(--ease-out) forwards;
+    }
+
+    .file-tag.active {
+      border-color: var(--vermilion);
+      color: var(--vermilion);
+      background: rgba(184, 58, 43, 0.05);
+    }
+
+    .file-tag:nth-child(1) { animation-delay: 0.42s; }
+    .file-tag:nth-child(2) { animation-delay: 0.5s; }
+    .file-tag:nth-child(3) { animation-delay: 0.58s; }
+    .file-tag:nth-child(4) { animation-delay: 0.66s; }
+
+    @keyframes tag-rise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 进度条 */
+    .archive-progress {
+      width: min(320px, 80vw);
+      height: 2px;
+      background: var(--paper-2);
+      border-radius: 1px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: rise 0.7s var(--ease-out) 0.74s forwards;
+    }
+
+    .archive-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--vermilion);
+      animation: progress 2s var(--ease-out) 0.9s forwards;
+    }
+
+    @keyframes progress {
+      0% { width: 0%; }
+      40% { width: 55%; }
+      70% { width: 80%; }
+      100% { width: 100%; }
+    }
+
+    .archive-message {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--ink-3);
+      opacity: 0;
+      animation: rise 0.7s var(--ease-out) 0.86s forwards;
+    }
+
+    /* 错误/未找到提示 */
+    .archive-error {
+      display: none;
+      margin-top: 32px;
+      padding: 28px 34px;
+      border: 1px solid var(--paper-border);
+      background: var(--paper-0);
+      border-radius: 3px;
+      max-width: 480px;
+    }
+
+    .archive-error.show {
+      display: block;
+      opacity: 0;
+      animation: rise 0.6s var(--ease-out) forwards;
+    }
+
+    .archive-error h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--vermilion);
+      margin-bottom: 10px;
+    }
+
+    .archive-error p {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--ink-1);
+      margin-bottom: 18px;
+    }
+
+    .archive-error a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--vermilion);
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: background 0.25s, transform 0.25s var(--ease-out);
+    }
+
+    .archive-error a:hover {
+      background: var(--vermilion-deep);
+      transform: translateY(-2px);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .archive-stamp, .archive-title, .archive-subtitle,
+      .file-tag, .archive-progress, .archive-message,
+      .archive-error {
+        opacity: 1;
+        transform: none;
+      }
+      .archive-progress-bar { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="archive-bg"></div>
+
+<div class="archive-container">
+  <div class="archive-stamp" aria-hidden="true">
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="20" cy="20" r="12"/>
+      <line x1="31" y1="31" x2="42" y2="42"/>
+      <line x1="14" y1="20" x2="26" y2="20" opacity="0.5"/>
+      <line x1="20" y1="14" x2="20" y2="26" opacity="0.5"/>
+    </svg>
+  </div>
+
+  <h1 class="archive-title">正在调取<em>档案</em></h1>
+  <p class="archive-subtitle">Archive Retrieval in Progress</p>
+
+  <div class="file-tags" aria-label="档案标签">
+    <span class="file-tag">INDEX</span>
+    <span class="file-tag">FEATURES</span>
+    <span class="file-tag">CASES</span>
+    <span class="file-tag">GUIDE</span>
+  </div>
+
+  <div class="archive-progress" aria-hidden="true">
+    <div class="archive-progress-bar"></div>
+  </div>
+  <p class="archive-message" id="status-message">正在转交卷宗至对应档案室...</p>
+
+  <div class="archive-error" id="not-found">
+    <h2>档案未找到</h2>
+    <p>我们未能在这间档案室中找到你请求的卷宗。它可能已被封存、编号变更，或从未归档。</p>
+    <a href="/index.html">
+      <span>返回首页</span>
+      <span>→</span>
+    </a>
+  </div>
+</div>
+
+<script>
+  /* =========================================================
+     404 页面 · 客户端路由重定向
+     =========================================================
+   * @description 在 GitHub Pages 等静态托管环境下，无后缀路径（如 /features）
+   *              会命中本 404 页面；脚本根据当前路径拼接 .html 后缀并重定向。
+   *              若路径已有 .html 后缀、为根路径、或不存在对应静态文件，则停止
+   *              自动跳转并展示友好的「档案未找到」提示。
+   * ========================================================= */
+
+  (function () {
+    'use strict';
+
+    /**
+     * 判断当前环境是否为本地开发环境
+     * @returns {boolean} 当 hostname 为 localhost 或 127.0.0.1 时返回 true
+     */
+    function isLocalhost() {
+      try {
+        var hostname = window.location.hostname || '';
+        return hostname === 'localhost' || hostname === '127.0.0.1';
+      } catch (err) {
+        console.warn('[404] 检测本地环境失败：', err);
+        return false;
+      }
+    }
+
+    /**
+     * 获取当前请求路径（不含查询参数与哈希）
+     * @returns {string} 当前路径，例如 /features
+     */
+    function getPathname() {
+      try {
+        return window.location.pathname || '/';
+      } catch (err) {
+        console.warn('[404] 获取路径失败：', err);
+        return '/';
+      }
+    }
+
+    /**
+     * 更新页面状态提示文本
+     * @param {string} message - 需要显示的文本内容
+     */
+    function updateStatus(message) {
+      try {
+        var el = document.getElementById('status-message');
+        if (el) el.textContent = message;
+      } catch (err) {
+        console.warn('[404] 更新状态文本失败：', err);
+      }
+    }
+
+    /**
+     * 展示「档案未找到」提示区域
+     */
+    function showNotFound() {
+      try {
+        updateStatus('未能定位到对应卷宗');
+        var errorBox = document.getElementById('not-found');
+        if (errorBox) errorBox.classList.add('show');
+      } catch (err) {
+        console.warn('[404] 显示未找到提示失败：', err);
+      }
+    }
+
+    /**
+     * 主处理逻辑：根据路径决定重定向或提示未找到
+     */
+    function main() {
+      try {
+        // 本地开发环境不应落到本页面，给出提示即可
+        if (isLocalhost()) {
+          updateStatus('本地开发环境建议通过代理服务器访问路径');
+          return;
+        }
+
+        var pathname = getPathname();
+
+        // 根路径或已有 .html 后缀时无需重定向
+        if (pathname === '/' || pathname.toLowerCase().endsWith('.html')) {
+          showNotFound();
+          return;
+        }
+
+        // 支持的页面映射表
+        var PAGE_MAP = {
+          '/': '/index.html',
+          '/features': '/features.html',
+          '/cases': '/cases.html',
+          '/guide': '/guide.html',
+          '/play': '/play.html'
+        };
+
+        var target = PAGE_MAP[pathname];
+        if (!target) {
+          showNotFound();
+          return;
+        }
+
+        // 保留查询参数与哈希
+        try {
+          target += window.location.search + window.location.hash;
+        } catch (err) {
+          console.warn('[404] 拼接查询参数失败：', err);
+        }
+
+        updateStatus('已定位卷宗，正在转交：' + target);
+
+        // 延迟跳转，让加载动画有足够展示时间
+        window.setTimeout(function () {
+          try {
+            window.location.replace(target);
+          } catch (err) {
+            console.error('[404] 重定向失败：', err);
+            showNotFound();
+          }
+        }, 1200);
+      } catch (err) {
+        console.error('[404] 主逻辑执行失败：', err);
+        showNotFound();
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', main);
+    } else {
+      main();
+    }
+  })();
+</script>
+
+</body>
+</html>
