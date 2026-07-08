@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>功能特性 · 知识侦探</title>
+  <meta name="description" content="了解知识侦探的核心功能：AI 自动编卷、线索系统、自定义案件、即时解析、知识卡封存与跨学科思维训练。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- 背景装饰 -->
+<div class="background-layer"></div>
+
+<div class="content">
+
+  <!-- 页面 Hero -->
+  <section class="hero" style="min-height: auto; padding-bottom: 80px;">
+    <div class="hero-kicker">
+      <span class="k-tag">FEATURES</span>
+      <span class="k-line"></span>
+      <span>CORE CAPABILITIES</span>
+    </div>
+    <h1 class="hero-title" style="font-size: clamp(42px, 8vw, 96px);">
+      <span>六大核心</span>
+      <span><em>功能</em></span>
+    </h1>
+    <p class="hero-subtitle">
+      从 AI 剧本生成到知识卡封存，每一个环节都为了让「理解」这件事变得更自然、更有趣。
+    </p>
+  </section>
+
+  <!-- 功能详情 -->
+  <section class="section">
+    <div class="section-head fade-in-up">
+      <div class="section-title-wrap">
+        <h2>功能<em>详解</em></h2>
+        <span class="zh">每 一 项 都 为 深 度 学 习 而 设 计</span>
+      </div>
+      <div class="section-meta">
+        <div>DEEP <strong>DIVE</strong></div>
+        <div>INTO CAPABILITIES</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <article class="feature-card fade-in-up">
+        <div class="card-icon">§</div>
+        <h3>AI 自动编卷</h3>
+        <p>基于大语言模型，将用户输入的文章自动解析为核心概念，并生成包含场景描述、线索、问题、选项与解析的完整推理剧本。</p>
+      </article>
+      <article class="feature-card fade-in-up">
+        <div class="card-icon">◆</div>
+        <h3>沉浸式线索系统</h3>
+        <p>线索以卡片形式呈现，用户需要主动点击收集。每条线索都对应一个关键概念，收集完整后才能解锁推理问题。</p>
+      </article>
+      <article class="feature-card fade-in-up">
+        <div class="card-icon">∞</div>
+        <h3>无限自定义案件</h3>
+        <p>支持直接粘贴文本，或通过浏览器 File API 读取 TXT、PDF、Word 文档。任何知识材料都能被转化为独家案卷。</p>
+      </article>
+      <article class="feature-card fade-in-up">
+        <div class="card-icon">✓</div>
+        <h3>即时反馈解析</h3>
+        <p>提交答案后立即显示正确与否，并提供详细解析、关键要点（Key Points）和公式推导，巩固学习效果。</p>
+      </article>
+      <article class="feature-card fade-in-up">
+        <div class="card-icon">◈</div>
+        <h3>知识卡封存</h3>
+        <p>破案成功后自动生成知识档案卡，沉淀核心定义、通俗解释与实际应用场景，形成可长期复习的知识资产。</p>
+      </article>
+      <article class="feature-card fade-in-up">
+        <div class="card-icon">⊕</div>
+        <h3>跨学科思维模型</h3>
+        <p>内置概率、统计、博弈论、逻辑思维、认知偏差、第一性原理等多领域案卷，帮助用户建立可迁移的思维框架。</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- 操作流程时间线 -->
+  <section class="section">
+    <div class="section-head fade-in-up">
+      <div class="section-title-wrap">
+        <h2>操作<em>流程</em></h2>
+        <span class="zh">四 步 完 成 一 次 推 理 旅 程</span>
+      </div>
+      <div class="section-meta">
+        <div>HOW IT <strong>WORKS</strong></div>
+        <div>FROM TEXT TO CASE</div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item active fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 01</span>
+          <h4>输入材料</h4>
+          <p>粘贴文章文本，或上传 TXT / PDF / Word 文档。系统会自动提取文字内容，作为生成推理剧本的原材料。</p>
+        </div>
+      </div>
+      <div class="timeline-item fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 02</span>
+          <h4>AI 生成剧本</h4>
+          <p>后端代理调用 AI API，基于材料生成标题、场景、线索、问题、选项与解析，并返回纯 JSON 数据供前端渲染。</p>
+        </div>
+      </div>
+      <div class="timeline-item fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 03</span>
+          <h4>收集线索并推理</h4>
+          <p>阅读案件场景，点击线索卡片获取关键信息。所有线索收集完毕后，分析选项并提交你的推理判断。</p>
+        </div>
+      </div>
+      <div class="timeline-item fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 04</span>
+          <h4>查看解析并封存</h4>
+          <p>系统展示正确答案与详细解析，最后点击「封存卷宗」生成知识卡，案件自动存入本地档案库。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部 CTA -->
+  <section class="cta-section fade-in-up">
+    <h2>体验完整<em>功能</em></h2>
+    <p>无需注册，打开浏览器即可开始你的第一次推理。</p>
+    <a class="btn-primary" href="/play">
+      <span>开始推理</span>
+      <span class="arrow">→</span>
+    </a>
+  </section>
+
+</div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

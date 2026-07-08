@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使用指南 · 知识侦探</title>
+  <meta name="description" content="知识侦探使用指南：快速开始、详细操作步骤、常见问题 FAQ 与环境配置说明。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- 背景装饰 -->
+<div class="background-layer"></div>
+
+<div class="content">
+
+  <!-- 页面 Hero -->
+  <section class="hero" style="min-height: auto; padding-bottom: 80px;">
+    <div class="hero-kicker">
+      <span class="k-tag">GUIDE</span>
+      <span class="k-line"></span>
+      <span>USER MANUAL</span>
+    </div>
+    <h1 class="hero-title" style="font-size: clamp(42px, 8vw, 96px);">
+      <span>使用</span>
+      <span><em>指南</em></span>
+    </h1>
+    <p class="hero-subtitle">
+      从安装配置到推理结案，一份完整的侦探手册。
+    </p>
+  </section>
+
+  <!-- 快速开始 -->
+  <section class="section" id="quickstart">
+    <div class="section-head fade-in-up">
+      <div class="section-title-wrap">
+        <h2>快速<em>开始</em></h2>
+        <span class="zh">五 分 钟 内 启 动 你 的 第 一 个 案 件</span>
+      </div>
+      <div class="section-meta">
+        <div>QUICK <strong>START</strong></div>
+        <div>GET UP AND RUNNING</div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item active fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 01</span>
+          <h4>克隆项目并安装依赖</h4>
+          <div class="code-block">git clone git@github.com:xiaomutou-git/KnowledgeDetective.git
+cd KnowledgeDetective
+pnpm install</div>
+        </div>
+      </div>
+      <div class="timeline-item fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 02</span>
+          <h4>配置 AI API Key</h4>
+          <div class="code-block">cp .env.example .env
+# 编辑 .env 文件，填入你的 API Key
+AI_API_KEY=your-api-key-here</div>
+          <p style="margin-top: 12px;">推荐使用 <a href="https://siliconflow.cn" target="_blank" rel="noopener noreferrer" style="color: var(--vermilion); border-bottom: 1px solid var(--vermilion);">硅基流动 SiliconFlow</a>，新用户赠送 2000 万 Token。</p>
+        </div>
+      </div>
+      <div class="timeline-item fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 03</span>
+          <h4>启动本地代理服务器</h4>
+          <div class="code-block">node proxy-server.js</div>
+          <p style="margin-top: 12px;">服务默认运行在 <strong>http://localhost:4315</strong>。</p>
+        </div>
+      </div>
+      <div class="timeline-item fade-in-up">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <span class="step-num">STEP 04</span>
+          <h4>打开浏览器开始推理</h4>
+          <p>访问首页 <a href="/" style="color: var(--vermilion); border-bottom: 1px solid var(--vermilion);">http://localhost:4315/</a>，点击「开始推理」进入游戏页面，选择案卷或上传自己的材料。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 详细操作指南 -->
+  <section class="section">
+    <div class="section-head fade-in-up">
+      <div class="section-title-wrap">
+        <h2>操作<em>指南</em></h2>
+        <span class="zh">从 开 卷 到 封 存 的 完 整 流 程</span>
+      </div>
+      <div class="section-meta">
+        <div>DETAILED <strong>OPERATIONS</strong></div>
+        <div>CASE WORKFLOW</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="feature-card fade-in-up">
+        <div class="card-icon">01</div>
+        <h3>选择案卷</h3>
+        <p>进入推理页面后，可以从精选案卷中选择一个主题，或滚动到页面底部使用「上传你的卷宗」功能。</p>
+      </div>
+      <div class="feature-card fade-in-up">
+        <div class="card-icon">02</div>
+        <h3>阅读场景</h3>
+        <p>仔细阅读案件背景故事。场景会逐步揭示关键信息，帮助你将抽象概念嵌入到具体情境中。</p>
+      </div>
+      <div class="feature-card fade-in-up">
+        <div class="card-icon">03</div>
+        <h3>收集线索</h3>
+        <p>点击线索卡片查看详细信息。所有线索收集完毕后，才能对推理问题做出判断。</p>
+      </div>
+      <div class="feature-card fade-in-up">
+        <div class="card-icon">04</div>
+        <h3>回答问题</h3>
+        <p>根据场景与线索，选择你认为正确的选项。提交后会立即显示答案与详细解析。</p>
+      </div>
+      <div class="feature-card fade-in-up">
+        <div class="card-icon">05</div>
+        <h3>查看解析</h3>
+        <p>解析包含正确答案、关键要点、公式推导与知识拓展。即使答错，也能从解析中完成学习。</p>
+      </div>
+      <div class="feature-card fade-in-up">
+        <div class="card-icon">06</div>
+        <h3>封存档案</h3>
+        <p>点击「封存卷宗」生成知识卡。知识卡会自动保存到浏览器的本地档案库，方便随时复习。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 环境配置 -->
+  <section class="section" id="env">
+    <div class="section-head fade-in-up">
+      <div class="section-title-wrap">
+        <h2>环境<em>配置</em></h2>
+        <span class="zh">服 务 启 动 前 的 准 备 工 作</span>
+      </div>
+      <div class="section-meta">
+        <div>ENVIRONMENT <strong>SETUP</strong></div>
+        <div>REQUIREMENTS & CONFIG</div>
+      </div>
+    </div>
+
+    <div class="feature-card fade-in-up" style="margin-bottom: 24px;">
+      <div class="card-icon">req</div>
+      <h3>系统要求</h3>
+      <p>Node.js >= 14.0.0 · 现代浏览器（Chrome / Edge / Firefox / Safari）· 网络连接（用于调用 AI API）</p>
+    </div>
+
+    <div class="feature-card fade-in-up" style="margin-bottom: 24px;">
+      <div class="card-icon">env</div>
+      <h3>环境变量说明</h3>
+      <p style="margin-bottom: 12px;">在 <code style="font-family: 'JetBrains Mono', monospace; background: var(--paper-1); padding: 2px 6px;">.env</code> 文件中配置以下变量：</p>
+      <div class="code-block">AI_API_KEY=your-api-key-here
+AI_ENDPOINT=https://api.siliconflow.cn/v1/chat/completions
+AI_MODEL=Qwen/Qwen2.5-7B-Instruct</div>
+    </div>
+
+    <div class="feature-card fade-in-up">
+      <div class="card-icon">run</div>
+      <h3>启动命令</h3>
+      <div class="code-block">node proxy-server.js</div>
+      <p style="margin-top: 12px;">启动成功后，控制台会打印访问地址与 API 状态。如果 API Key 未配置，服务器会提示并退出。</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <div class="section-head fade-in-up">
+      <div class="section-title-wrap">
+        <h2>常见<em>问题</em></h2>
+        <span class="zh">FAQ · 解 答 你 的 疑 惑</span>
+      </div>
+      <div class="section-meta">
+        <div>FREQUENTLY <strong>ASKED</strong></div>
+        <div>QUESTIONS</div>
+      </div>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item fade-in-up">
+        <button class="faq-question">
+          <span>知识侦探需要联网吗？</span>
+          <span class="q-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>本地服务启动后，前端页面可以直接在浏览器中打开。但如果你使用「自定义卷宗」功能让 AI 生成剧本，则需要联网调用 AI API。</p>
+        </div>
+      </div>
+      <div class="faq-item fade-in-up">
+        <button class="faq-question">
+          <span>API Key 会暴露在前端吗？</span>
+          <span class="q-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>不会。API Key 仅存储在服务器的环境变量中，由 proxy-server.js 代理调用 AI API。前端只与本地代理通信，不会直接接触 API Key。</p>
+        </div>
+      </div>
+      <div class="faq-item fade-in-up">
+        <button class="faq-question">
+          <span>支持哪些文档格式？</span>
+          <span class="q-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>当前支持直接粘贴文本、上传 TXT 文件、PDF 文件（依赖 pdf.js）以及 Word 文档（依赖 mammoth.js）。建议文本长度不少于 50 字，以获得更好的生成效果。</p>
+        </div>
+      </div>
+      <div class="faq-item fade-in-up">
+        <button class="faq-question">
+          <span>我的案件数据会被保存到哪里？</span>
+          <span class="q-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>所有案件数据与知识卡都保存在浏览器的 localStorage 中，不会上传到服务器。清理浏览器数据会导致本地档案丢失，请知悉。</p>
+        </div>
+      </div>
+      <div class="faq-item fade-in-up">
+        <button class="faq-question">
+          <span>生成失败怎么办？</span>
+          <span class="q-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>请检查：1) API Key 是否正确配置；2) 网络连接是否正常；3) 输入文本是否过短或包含特殊格式。你也可以通过 /api/health 接口检查服务器与 AI 配置状态。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部 CTA -->
+  <section class="cta-section fade-in-up">
+    <h2>还有<em>疑问</em>？</h2>
+    <p>前往 GitHub 提交 Issue，或直接进入游戏页面开始体验。</p>
+    <div class="cta-row" style="justify-content: center;">
+      <a class="btn-ghost" href="https://github.com/xiaomutou-git/KnowledgeDetective/issues" target="_blank" rel="noopener noreferrer">
+        <span>提交反馈</span>
+      </a>
+      <a class="btn-primary" href="/play">
+        <span>开始推理</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
