@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识侦探 · 页面跳转中</title>
+  <meta name="robots" content="noindex">
+  <script>
+    /**
+     * GitHub Pages SPA 404 回退脚本
+     * @description 当用户直接访问 /features.html 等子路径时，GitHub Pages 会返回 404。
+     *              本页面将原始路径存入 sessionStorage，然后重定向到 index.html，
+     *              由 React App 读取后恢复为对应的 SPA 视图。
+     */
+    (function () {
+      var pathname = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+      // 以当前 404 页面所在目录作为 base（例如 /KnowledgeDetective/）
+      var base = pathname.replace(/\/[^/]*$/, '/');
+      if (!base.endsWith('/')) {
+        base += '/';
+      }
+      try {
+        sessionStorage.setItem('kd_redirect_path', pathname + search + hash);
+      } catch (err) {
+        console.warn('[404] 保存重定向路径失败：', err);
+      }
+      window.location.replace(base + 'index.html');
+    })();
+  </script>
+</head>
+<body>
+  <p style="font-family: sans-serif; text-align: center; margin-top: 40vh; color: #5a5a5a;">
+    正在跳转回知识侦探首页…
+  </p>
+</body>
+</html>
