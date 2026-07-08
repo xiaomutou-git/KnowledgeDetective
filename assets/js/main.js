@@ -20,35 +20,38 @@
 
   /**
    * 站点导航配置
+   * @description 所有内部页面路径统一使用 .html 后缀，确保在 GitHub Pages 等静态托管服务上可直接访问，
+   *              无需依赖 404 重定向兜底。
    * @constant {Array<{label: string, path: string}>}
    */
   const NAV_ITEMS = [
-    { label: '首页', path: '/' },
-    { label: '功能', path: '/features' },
-    { label: '案例', path: '/cases' },
-    { label: '指南', path: '/guide' },
-    { label: '开始推理', path: '/play' }
+    { label: '首页', path: '/index.html' },
+    { label: '功能', path: '/features.html' },
+    { label: '案例', path: '/cases.html' },
+    { label: '指南', path: '/guide.html' },
+    { label: '开始推理', path: '/play.html' }
   ];
 
   /**
    * 页脚链接分组配置
+   * @description 内部页面路径统一使用 .html 后缀，锚点链接保持 hash 形式，外部链接保持不变。
    * @constant {Array<{title: string, links: Array<{label: string, path: string}>}>}
    */
   const FOOTER_COLUMNS = [
     {
       title: '产品',
       links: [
-        { label: '功能特性', path: '/features' },
-        { label: '成功案例', path: '/cases' },
-        { label: '推理游戏', path: '/play' }
+        { label: '功能特性', path: '/features.html' },
+        { label: '成功案例', path: '/cases.html' },
+        { label: '推理游戏', path: '/play.html' }
       ]
     },
     {
       title: '资源',
       links: [
-        { label: '使用指南', path: '/guide' },
-        { label: '快速开始', path: '/guide#quickstart' },
-        { label: '常见问题', path: '/guide#faq' }
+        { label: '使用指南', path: '/guide.html' },
+        { label: '快速开始', path: '/guide.html#quickstart' },
+        { label: '常见问题', path: '/guide.html#faq' }
       ]
     },
     {
@@ -61,7 +64,9 @@
   ];
 
   /**
-   * 需要自适应为 .html 后缀的内部页面路径集合
+   * 无后缀路径到 .html 路径的映射表
+   * @description 用于兼容页面中可能遗留的旧无后缀硬编码链接，确保它们最终指向正确的 .html 文件。
+   *              导航与页脚配置本身已使用 .html 后缀，因此不会重复转换。
    * @constant {Object<string, string>}
    */
   const HTML_PAGE_MAP = {
@@ -73,27 +78,13 @@
   };
 
   /* =========================================================
-     环境判断与链接处理
+     链接处理
      ========================================================= */
 
   /**
-   * 判断当前是否处于 GitHub Pages 等静态托管环境
-   * @description 通过 hostname 判断：非 localhost / 127.0.0.1 即视为线上静态托管。
-   *              在此类环境下，内部页面链接需要添加 .html 后缀。
-   * @returns {boolean} 是否为静态托管环境
-   */
-  function isGitHubPagesEnvironment() {
-    try {
-      const hostname = window.location.hostname || '';
-      return hostname !== 'localhost' && hostname !== '127.0.0.1';
-    } catch (err) {
-      console.warn('[main.js] 判断运行环境失败：', err);
-      return false;
-    }
-  }
-
-  /**
-   * 根据当前环境构建最终链接
+   * 构建最终可访问链接
+   * @description 外部链接原样返回；内部无后缀路径（如 /features）会被映射为 /features.html；
+   *              已带 .html 后缀的路径保持原样；支持保留 hash / query 后缀。
    * @param {string} path - 原始路径，例如 /features 或 /guide#quickstart
    * @returns {string} 处理后的可访问链接
    * @throws {Error} 不会主动抛出异常，参数非字符串时返回空字符串
@@ -102,7 +93,6 @@
     try {
       if (typeof path !== 'string') return '';
       if (path.indexOf('http') === 0) return path;
-      if (!isGitHubPagesEnvironment()) return path;
 
       // 分离哈希与查询参数
       const hashIndex = path.indexOf('#');
