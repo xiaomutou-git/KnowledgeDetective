@@ -11,7 +11,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { PageId } from '../../types/app';
 import type { Case, Clue, ArchiveRecord } from '../../types/case';
 import type { GamePhase, GenStep } from '../../types/game';
-import { findCaseById } from '../../data/seedCases';
+import { findCaseById as findSeedCaseById } from '../../data/seedCases';
 import { generateCaseFromText, ApiError } from '../../services/api';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { FadeIn } from '../common/FadeIn';
@@ -65,15 +65,17 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
 
   /**
    * 根据 initialCaseId 自动进入指定案卷
+   * @description 优先从当前案卷列表查找，未命中时再查询本地种子数据。
    */
   useEffect(() => {
     if (initialCaseId && phase === 'select') {
-      const target = findCaseById(initialCaseId);
+      const target =
+        cases.find((c) => String(c.id) === String(initialCaseId)) || findSeedCaseById(initialCaseId);
       if (target) {
         startExistingCase(target);
       }
     }
-  }, [initialCaseId]);
+  }, [initialCaseId, cases]);
 
   /**
    * 重置当前游戏状态
@@ -786,7 +788,11 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
   // ------------------ 档案库视图 ------------------
   const renderArchive = () => {
     const archivedCases = archives
-      .map((record) => ({ record, caseItem: findCaseById(record.caseId) }))
+      .map((record) => ({
+        record,
+        caseItem:
+          cases.find((c) => String(c.id) === String(record.caseId)) || findSeedCaseById(record.caseId)
+      }))
       .filter((item) => item.caseItem);
 
     return (

@@ -59,7 +59,8 @@ export async function query(
 ): Promise<mysql.RowDataPacket[] | mysql.ResultSetHeader> {
   const connectionPool = getPool();
   try {
-    const [rows] = await connectionPool.execute(sql, values);
+    // mysql2 的 execute 要求 values 类型为 ExecuteValues，此处将 unknown[] 安全转换
+    const [rows] = await connectionPool.execute(sql, values as mysql.ExecuteValues);
     return rows as mysql.RowDataPacket[] | mysql.ResultSetHeader;
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));

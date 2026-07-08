@@ -9,7 +9,7 @@
 
 /// <reference types="vite/client" />
 
-import type { Case } from '../types/case';
+import type { Case, Clue, Option, Analysis, KnowledgeCard } from '../types/case';
 
 /**
  * API 基础地址
@@ -17,6 +17,131 @@ import type { Case } from '../types/case';
  *              生产构建时由 .env.production 覆盖。
  */
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4315/api';
+
+/**
+ * 后端返回的案卷结构
+ * @description 与数据库表结构保持一致，字段命名采用下划线/后端风格。
+ */
+export interface BackendCase {
+  /** 案卷数字 ID */
+  id: number;
+  /** 案卷标题 */
+  title: string;
+  /** 副标题 */
+  subtitle: string;
+  /** 分类标签 */
+  category: string;
+  /** 难度 1-5 */
+  difficulty: number;
+  /** 场景描述文本 */
+  scene: string;
+  /** 线索数组（后端格式） */
+  clues: Array<{ title: string; hint: string; content: string; insight: string }>;
+  /** 推理问题 */
+  question: string;
+  /** 选项数组（后端格式） */
+  options: Array<{ label: string; text: string; correct?: boolean }>;
+  /** 解析（后端格式） */
+  analysis: { body: string; kps: string[]; formula: string };
+  /** 知识卡（后端格式） */
+  card: {
+    tag: string;
+    title: string;
+    subtitle: string;
+    definition: string;
+    explanation: string;
+    application: string;
+  };
+  /** 是否种子数据 */
+  is_seed?: boolean;
+  /** 创建时间 */
+  created_at?: string;
+  /** 更新时间 */
+  updated_at?: string;
+}
+
+/**
+ * 后端统一响应包装
+ * @template T 实际数据类型
+ */
+export interface ApiResponse<T> {
+  /** 是否成功 */
+  success: boolean;
+  /** 实际数据 */
+  data: T;
+  /** 总数（列表接口可能返回） */
+  total?: number;
+  /** 错误信息 */
+  message?: string;
+}
+
+/**
+ * 将后端案卷转换为前端 Case 格式
+ * @description 字段名、结构不一致时在此处统一适配，避免组件层感知后端差异。
+ * @param backend - 后端返回的原始案卷对象
+ * @returns 前端标准的 Case 对象
+ */
+export function mapBackendCaseToFrontend(backend: BackendCase): Case {
+  // 找出正确答案的选项标签
+  const correctOption = backend.options.find((opt) => opt.correct === true);
+  const correctOptionId = correctOption ? correctOption.label : '';
+
+  // 将场景文本按段落拆分为数组
+  const sceneParagraphs = backend.scene
+    ? backend.scene.split(/\n+/).filter((p) => p.trim().length > 0)
+    : [];
+
+  // 将分类标签拆分为关键词标签
+  const tags = backend.category
+    ? backend.category.split(/[/|,、]/).map((t) => t.trim()).filter(Boolean)
+    : ['AI生成'];
+
+  // 为每个线索生成稳定 ID
+  const clues: Clue[] = backend.clues.map((c, index) => ({
+    id: `c-${backend.id}-${index + 1}`,
+    title: c.title,
+    hint: c.hint,
+    body: c.content,
+    insight: c.insight
+  }));
+
+  // 选项标签直接作为 id
+  const options: Option[] = backend.options.map((opt) => ({
+    id: opt.label,
+    text: opt.text
+  }));
+
+  const analysis: Analysis = {
+    correctOptionId,
+    body: backend.analysis.body,
+    keyPoints: backend.analysis.kps,
+    formula: backend.analysis.formula
+  };
+
+  const knowledgeCard: KnowledgeCard = {
+    concept: backend.card.title || backend.title,
+    definition: backend.card.definition,
+    explanation: backend.card.explanation,
+    application: backend.card.application
+  };
+
+  return {
+    id: String(backend.id),
+    num: String(backend.id).padStart(3, '0'),
+    title: backend.title,
+    enTitle: backend.card.title || backend.title,
+    subtitle: backend.subtitle,
+    type: backend.category || '综合',
+    difficulty: backend.difficulty,
+    tags,
+    scene: sceneParagraphs,
+    clues,
+    question: backend.question,
+    options,
+    analysis,
+    knowledgeCard
+  };
+}
 
 /**
  * API 通用请求超时时间（毫秒）
@@ -33,21 +158,6 @@ export interface HealthResponse {
   aiConfigured?: boolean;
 }
 
-/**
- * 生成剧本请求体
- */
-export interface GenerateCaseRequest {
-  /** 用户输入的原始文本 */
-  text: string;
-}
-
-/**
- * 生成剧本响应体
- */
-export interface GenerateCaseResponse {
-  /** 生成的案卷数据 */
-  case: Case;
-}
 
 /**
  * API 错误类
@@ -147,22 +257,45 @@ export async function checkHealth(): Promise<HealthResponse> {
  */
 export async function generateCaseFromText(text: string): Promise<Case> {
   try {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/generate`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/games/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ text } satisfies GenerateCaseRequest)
+      body: JSON.stringify({ articleText: text })
     });
 
     if (!response.ok) {
       await handleErrorResponse(response);
     }
 
-    const data = (await response.json()) as GenerateCaseResponse;
-    return data.case;
+    const data = (await response.json()) as ApiResponse<BackendCase>;
+    return mapBackendCaseToFrontend(data.data);
   } catch (err) {
     if (err instanceof ApiError) throw err;
     throw new ApiError('生成案卷失败', 0, err instanceof Error ? err.message : String(err));
+  }
+}
+
+/**
+ * 从后端获取案卷列表
+ * @description 调用 GET /api/cases 获取所有案卷，并转换为前端 Case 格式。
+ * @returns {Promise<Case[]>} 案卷列表
+ * @throws {ApiError} 网络错误或后端返回非 2xx 时抛出
+ */
+export async function fetchCases(): Promise<Case[]> {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/cases`);
+
+    if (!response.ok) {
+      await handleErrorResponse(response);
+    }
+
+    const data = (await response.json()) as ApiResponse<BackendCase[]>;
+    const backends = Array.isArray(data.data) ? data.data : [];
+    return backends.map(mapBackendCaseToFrontend);
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError('获取案卷列表失败', 0, err instanceof Error ? err.message : String(err));
   }
 }

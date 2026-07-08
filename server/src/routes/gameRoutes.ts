@@ -22,7 +22,7 @@ import {
  * 游戏路由实例
  * @description 定义游戏相关接口
  */
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET / - 游戏历史列表

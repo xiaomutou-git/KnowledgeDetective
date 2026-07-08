@@ -30,7 +30,7 @@ const DEFAULT_BODY_LIMIT = 10 * 1024 * 1024;
  * @param {NextFunction} next - 下一个中间件函数
  * @returns {void}
  */
-export function bodyLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function bodyLimitMiddleware(req: Request, _res: Response, next: NextFunction): void {
   const limit = appConfig.bodyLimit || DEFAULT_BODY_LIMIT;
 
   // 优先检查 Content-Length 头
