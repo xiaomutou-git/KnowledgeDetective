@@ -17,7 +17,7 @@ import { getCases, getCaseByIdController } from '../controllers/caseController';
  * 案卷路由实例
  * @description 定义 / 与 /:id 路径下的 GET 接口
  */
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET / - 案卷列表

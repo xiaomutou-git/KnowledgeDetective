@@ -13,9 +13,32 @@
 
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 // 加载项目根目录下的 .env 文件（若存在）
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
+/**
+ * 解析静态资源根目录
+ * @description 优先使用环境变量 STATIC_ROOT；未配置时尝试指向 ../web/dist。
+ *              若该目录不存在（本地开发未构建前端），则回退到 server 目录下的占位路径，
+ *              避免静态文件中间件因目录不存在而抛出异常。
+ * @returns {string} 静态资源根目录绝对路径
+ */
+function resolveStaticRoot(): string {
+  if (process.env.STATIC_ROOT) {
+    return path.resolve(process.env.STATIC_ROOT);
+  }
+
+  const projectRoot = path.resolve(process.cwd(), '..');
+  const defaultDist = path.join(projectRoot, 'web', 'dist');
+  if (fs.existsSync(defaultDist)) {
+    return defaultDist;
+  }
+
+  // 回退路径：指向 server/public（若不存在，express.static 会忽略不存在的目录）
+  return path.resolve(process.cwd(), 'public');
+}
 
 /**
  * 当前运行环境
@@ -76,9 +99,9 @@ export const appConfig = {
   /**
    * 静态文件根目录
    * @type {string}
-   * @description 指向项目根目录，为前端 HTML/CSS/JS 提供静态服务
+   * @description 指向前端构建产物目录 web/dist，生产环境由此提供 SPA 静态资源
    */
-  staticRoot: process.env.STATIC_ROOT || path.resolve(process.cwd(), '..'),
+  staticRoot: resolveStaticRoot(),
 
   /**
    * API 基础路径前缀

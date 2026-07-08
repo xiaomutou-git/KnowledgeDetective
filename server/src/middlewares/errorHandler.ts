@@ -57,7 +57,7 @@ export class AppError extends Error {
  * @param {NextFunction} next - 下一个中间件函数
  * @returns {void}
  */
-export function notFoundHandler(req: Request, res: Response, next: NextFunction): void {
+export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
   const error = new AppError(`路由未找到: ${req.method} ${req.originalUrl}`, 404);
   next(error);
 }

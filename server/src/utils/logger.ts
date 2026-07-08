@@ -107,7 +107,7 @@ export const logger = winston.createLogger({
  * @param {string} url - 服务访问地址
  * @returns {void}
  */
-export function logStartupBanner(port: number, url: string): void {
+export function logStartupBanner(_port: number, url: string): void {
   logger.info('='.repeat(60));
   logger.info('  知识侦探 - TypeScript 后端服务');
   logger.info('='.repeat(60));

@@ -24,16 +24,10 @@ import { registerRoutes } from './routes';
 import { logger } from './utils/logger';
 
 /**
- * 页面路由映射
- * @description 将友好路径映射到项目根目录下的 HTML 文件
+ * SPA 页面回退路径
+ * @description React 单页面应用的所有路由都应返回 index.html，由前端路由接管。
  */
-const PAGE_ROUTES: Record<string, string> = {
-  '/': '/index.html',
-  '/features': '/features.html',
-  '/cases': '/cases.html',
-  '/guide': '/guide.html',
-  '/play': '/play.html'
-};
+const SPA_FALLBACK_FILE = '/index.html';
 
 /**
  * 创建并配置 Express 应用实例
@@ -73,24 +67,22 @@ export function createApp(): Application {
   // 5. 注册 API 路由
   registerRoutes(app);
 
-  // 6. 页面路由映射
-  Object.entries(PAGE_ROUTES).forEach(([route, file]) => {
-    app.get(route, (_req: Request, res: Response, next: NextFunction) => {
-      try {
-        res.sendFile(path.join(appConfig.staticRoot, file), (err) => {
-          if (err) {
-            logger.warn(`发送页面文件失败: ${file}`, { message: err.message });
-            next();
-          }
-        });
-      } catch (err) {
-        next(err);
-      }
-    });
-  });
-
-  // 7. 静态文件服务
+  // 6. 静态文件服务（指向前端构建产物 web/dist）
   app.use(express.static(appConfig.staticRoot));
+
+  // 7. SPA 页面回退：所有非 /api 请求返回 index.html，由 React 前端路由接管
+  app.get('*', (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.sendFile(path.join(appConfig.staticRoot, SPA_FALLBACK_FILE), (err) => {
+        if (err) {
+          logger.warn(`发送 SPA 回退页面失败: ${SPA_FALLBACK_FILE}`, { message: err.message });
+          next();
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // 8. 404 路由未找到处理
   app.use(notFoundHandler);

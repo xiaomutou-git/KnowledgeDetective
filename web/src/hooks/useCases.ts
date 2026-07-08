@@ -9,8 +9,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import type { Case } from '../types/case';
-import { getSeedCases, findCaseById } from '../data/seedCases';
-import { checkHealth, ApiError } from '../services/api';
+import { getSeedCases, findCaseById as findSeedCaseById } from '../data/seedCases';
+import { fetchCases, ApiError } from '../services/api';
 
 /**
  * useCases 返回值
@@ -43,7 +43,8 @@ export function useCases(): UseCasesReturn {
 
   /**
    * 加载案卷数据
-   * @description 先尝试健康检查，失败后降级使用本地 seedCases。
+   * @description 先尝试从后端 /api/cases 获取案卷；若后端不可用或请求失败，
+   *              则降级使用本地 seedCases，保证离线体验。
    */
   const loadCases = useCallback(async () => {
     setLoading(true);
@@ -51,8 +52,14 @@ export function useCases(): UseCasesReturn {
     setIsLocalFallback(false);
 
     try {
-      await checkHealth();
-      setCases([...getSeedCases()]);
+      const backendCases = await fetchCases();
+      if (backendCases.length > 0) {
+        setCases(backendCases);
+      } else {
+        setCases([...getSeedCases()]);
+        setIsLocalFallback(true);
+        setError('后端暂无案卷数据，已加载本地精选案卷。');
+      }
     } catch (err) {
       console.warn('[useCases] 后端不可用，降级使用本地案卷：', err);
       setCases([...getSeedCases()]);
@@ -75,9 +82,15 @@ export function useCases(): UseCasesReturn {
         setLoading(true);
         setError(null);
         setIsLocalFallback(false);
-        await checkHealth();
+        const backendCases = await fetchCases();
         if (!cancelled) {
-          setCases([...getSeedCases()]);
+          if (backendCases.length > 0) {
+            setCases(backendCases);
+          } else {
+            setCases([...getSeedCases()]);
+            setIsLocalFallback(true);
+            setError('后端暂无案卷数据，已加载本地精选案卷。');
+          }
         }
       } catch (err) {
         console.warn('[useCases] 后端不可用，降级使用本地案卷：', err);
@@ -106,12 +119,17 @@ export function useCases(): UseCasesReturn {
 
   /**
    * 根据 id 查找案卷
+   * @description 优先从已加载的案卷列表中查找，未命中时再查询本地种子数据，
+   *              确保后端案卷与本地案卷都能被正确定位。
    * @param id - 案卷唯一标识
    * @returns 对应的 Case 或 undefined
    */
-  const getCaseById = useCallback((id: string): Case | undefined => {
-    return findCaseById(id);
-  }, []);
+  const getCaseById = useCallback(
+    (id: string): Case | undefined => {
+      return cases.find((c) => String(c.id) === String(id)) || findSeedCaseById(id);
+    },
+    [cases]
+  );
 
   return {
     cases,

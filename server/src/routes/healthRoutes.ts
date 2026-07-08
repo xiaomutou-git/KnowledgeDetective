@@ -17,7 +17,7 @@ import { healthCheck } from '../controllers/healthController';
  * 健康检查路由实例
  * @description 定义 / 路径下的 GET 健康检查接口
  */
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET / - 健康检查
