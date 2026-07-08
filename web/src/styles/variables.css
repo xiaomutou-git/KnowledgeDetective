@@ -1,0 +1,52 @@
+/* =========================================================
+   知识侦探 · CSS 设计变量
+   =========================================================
+ * @description 定义 noir 复古档案视觉系统的全部 CSS 自定义属性：
+ *              纸面背景、深墨色文字、朱砂红/靛蓝/橄榄/赭石强调色、
+ *              卡片阴影、布局尺寸与常用缓动曲线。
+ * @author 知识侦探团队
+ * @date 2026-07-08
+ * ========================================================= */
+
+:root {
+  /* ---------- 纸面背景：暖米色系列 ---------- */
+  --paper-00: #f5f0e6;
+  --paper-0: #faf6ee;
+  --paper-1: #f0ead9;
+  --paper-2: #e8e0cc;
+  --paper-3: #e0d8c4;
+  --paper-border: #d4cdbc;
+
+  /* ---------- 文字层次：深墨色系列 ---------- */
+  --ink-00: #1a1a1a;
+  --ink-0: #2a2a2a;
+  --ink-1: #3d3d3d;
+  --ink-2: #5a5a5a;
+  --ink-3: #7a7a7a;
+
+  /* ---------- 强调色：档案标签色系 ---------- */
+  --vermilion: #b83a2b;
+  --vermilion-deep: #962e22;
+  --vermilion-light: #d45a4a;
+  --indigo: #2c3e6b;
+  --indigo-deep: #1e2c50;
+  --indigo-light: #45588a;
+  --olive: #5a6b3a;
+  --olive-light: #7a8b5a;
+  --ochre: #a06030;
+  --ochre-light: #c08050;
+
+  /* ---------- 卡片与阴影 ---------- */
+  --card-bg: #faf6ee;
+  --card-shadow: 0 2px 10px rgba(26, 26, 26, 0.05);
+  --card-shadow-hover: 0 14px 34px rgba(26, 26, 26, 0.11);
+
+  /* ---------- 布局 ---------- */
+  --grid-max: 1280px;
+  --header-height: 72px;
+
+  /* ---------- 缓动 ---------- */
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+}
