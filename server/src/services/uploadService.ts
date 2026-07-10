@@ -194,6 +194,6 @@ export function removeTempFile(filePath: string): void {
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    logger.warn('删除临时文件失败', { filePath, message });
+    logger.error('删除临时文件失败', { filePath, message });
   }
 }
