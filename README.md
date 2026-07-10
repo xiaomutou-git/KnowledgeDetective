@@ -64,7 +64,6 @@
 │   │   └── styles/         # 全局样式
 │   ├── package.json
 │   └── vite.config.ts
-├── legacy/                 # 原始 HTML 版本（已归档）
 ├── .github/workflows/      # GitHub Actions 部署配置
 ├── package.json            # 根目录工作区脚本
 └── README.md
