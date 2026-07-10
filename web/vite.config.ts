@@ -11,10 +11,11 @@ import react from '@vitejs/plugin-react';
  */
 export default defineConfig({
   /**
-   * GitHub Pages 部署基路径
-   * @description 仓库名为 KnowledgeDetective，所有资源引用前需加 /KnowledgeDetective/
+   * 部署基路径
+   * @description 默认本地开发或自托管使用根路径 /；GitHub Pages 部署时通过
+   *              VITE_BASE_PATH=/KnowledgeDetective/ 环境变量覆盖
    */
-  base: '/KnowledgeDetective/',
+  base: process.env.VITE_BASE_PATH || '/',
 
   /**
    * React 插件配置

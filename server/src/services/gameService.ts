@@ -24,6 +24,8 @@ import {
 import { getCaseById } from './caseService';
 import { AppError } from '../middlewares/errorHandler';
 import { logger } from '../utils/logger';
+import { isDatabaseConnectionError } from '../utils/db';
+import { safeParseJson } from '../utils/json';
 
 /**
  * 将数据库行转换为 Game 对象
@@ -38,7 +40,7 @@ function rowToGame(row: mysql.RowDataPacket): Game {
     userId: row.user_id,
     status: row.status,
     score: row.score,
-    answers: typeof row.answers === 'string' ? JSON.parse(row.answers) : row.answers,
+    answers: safeParseJson<AnswerRecord[]>(row.answers, 'answers', []),
     completedAt: row.completed_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -74,6 +76,14 @@ export async function createGame(input: CreateGameInput): Promise<Game> {
   } catch (err) {
     if (err instanceof AppError) throw err;
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，创建游戏记录失败', { message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('创建游戏记录失败', { message: error.message });
     throw new AppError('创建游戏记录失败', 500, true);
   }
@@ -100,6 +110,14 @@ export async function getGameById(id: number): Promise<Game | null> {
   } catch (err) {
     if (err instanceof AppError) throw err;
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，查询游戏记录失败', { id, message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('查询游戏记录失败', { id, message: error.message });
     throw new AppError('查询游戏记录失败', 500, true);
   }
@@ -150,7 +168,9 @@ export async function completeGame(
       throw new AppError('请提交答案选项', 400, true);
     }
 
-    const isCorrect = selectedLabel === correctOption.label;
+    // 统一按大写比较，避免前端传入小写标签导致误判
+    const correctLabel = correctOption.label.toUpperCase();
+    const isCorrect = selectedLabel === correctLabel;
     const score = isCorrect ? 100 : 0;
 
     const answerRecord: AnswerRecord = {
@@ -162,15 +182,24 @@ export async function completeGame(
 
     const updatedAnswers = [...game.answers, answerRecord];
 
+    // 使用条件 UPDATE 保证并发安全：只有状态仍为 playing 时才会更新成功
     const sql = `
       UPDATE games
       SET status = 'completed',
           score = ?,
           answers = ?,
           completed_at = NOW()
-      WHERE id = ?
+      WHERE id = ? AND status = 'playing'
     `;
-    await query(sql, [score, JSON.stringify(updatedAnswers), gameId]);
+    const updateResult = (await query(sql, [
+      score,
+      JSON.stringify(updatedAnswers),
+      gameId
+    ])) as mysql.ResultSetHeader;
+
+    if (updateResult.affectedRows === 0) {
+      throw new AppError('该游戏已经完成或状态已变更，请刷新后重试', 409, true);
+    }
 
     return {
       correct: isCorrect,
@@ -182,6 +211,14 @@ export async function completeGame(
   } catch (err) {
     if (err instanceof AppError) throw err;
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，完成游戏失败', { gameId, message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('完成游戏失败', { gameId, message: error.message });
     throw new AppError('完成游戏失败', 500, true);
   }
@@ -189,16 +226,29 @@ export async function completeGame(
 
 /**
  * 获取游戏历史列表
- * @description 按创建时间倒序返回所有游戏记录
+ * @description 按创建时间倒序返回指定用户的游戏记录；未提供 userId 时返回空数组，
+ *              避免泄露全部用户数据
+ * @param {string} userId - 用户标识，仅返回该用户的游戏记录
  * @returns {Promise<Game[]>} 游戏记录列表
  * @throws {AppError} 当查询失败时抛出
  */
-export async function listGames(): Promise<Game[]> {
+export async function listGames(userId: string): Promise<Game[]> {
   try {
-    const rows = (await query('SELECT * FROM games ORDER BY created_at DESC')) as mysql.RowDataPacket[];
+    const rows = (await query(
+      'SELECT * FROM games WHERE user_id = ? ORDER BY created_at DESC',
+      [userId]
+    )) as mysql.RowDataPacket[];
     return rows.map(rowToGame);
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，查询游戏历史失败', { message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('查询游戏历史失败', { message: error.message });
     throw new AppError('查询游戏历史失败', 500, true);
   }

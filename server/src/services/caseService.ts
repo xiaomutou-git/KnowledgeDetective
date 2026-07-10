@@ -14,9 +14,11 @@
 
 import mysql from 'mysql2/promise';
 import { query } from '../db/connection';
-import { Case, CreateCaseInput, CaseFilter } from '../models/caseModel';
+import { Case, CreateCaseInput, CaseFilter, ClueItem, OptionItem, CaseAnalysis, KnowledgeCard } from '../models/caseModel';
 import { AppError } from '../middlewares/errorHandler';
 import { logger } from '../utils/logger';
+import { isDatabaseConnectionError } from '../utils/db';
+import { safeParseJson } from '../utils/json';
 
 /**
  * 将数据库行转换为 Case 对象
@@ -32,11 +34,18 @@ function rowToCase(row: mysql.RowDataPacket): Case {
     category: row.category,
     difficulty: row.difficulty,
     scene: row.scene,
-    clues: typeof row.clues === 'string' ? JSON.parse(row.clues) : row.clues,
+    clues: safeParseJson<ClueItem[]>(row.clues, 'clues', []),
     question: row.question,
-    options: typeof row.options === 'string' ? JSON.parse(row.options) : row.options,
-    analysis: typeof row.analysis === 'string' ? JSON.parse(row.analysis) : row.analysis,
-    card: typeof row.card === 'string' ? JSON.parse(row.card) : row.card,
+    options: safeParseJson<OptionItem[]>(row.options, 'options', []),
+    analysis: safeParseJson<CaseAnalysis>(row.analysis, 'analysis', { body: '', kps: [], formula: '' }),
+    card: safeParseJson<KnowledgeCard>(row.card, 'card', {
+      tag: '',
+      title: '',
+      subtitle: '',
+      definition: '',
+      explanation: '',
+      application: ''
+    }),
     isSeed: row.is_seed === 1 || row.is_seed === true,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -76,6 +85,14 @@ export async function listCases(filter: CaseFilter = {}): Promise<Case[]> {
   } catch (err) {
     if (err instanceof AppError) throw err;
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，查询案卷列表失败', { message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('查询案卷列表失败', { message: error.message });
     throw new AppError('查询案卷列表失败', 500, true);
   }
@@ -102,6 +119,14 @@ export async function getCaseById(id: number): Promise<Case | null> {
   } catch (err) {
     if (err instanceof AppError) throw err;
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，查询案卷详情失败', { id, message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('查询案卷详情失败', { id, message: error.message });
     throw new AppError('查询案卷详情失败', 500, true);
   }
@@ -144,6 +169,14 @@ export async function createCase(input: CreateCaseInput): Promise<Case> {
   } catch (err) {
     if (err instanceof AppError) throw err;
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，创建案卷失败', { message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('创建案卷失败', { message: error.message });
     throw new AppError('创建案卷失败', 500, true);
   }
@@ -166,6 +199,14 @@ export async function deleteCase(id: number): Promise<boolean> {
     return result.affectedRows > 0;
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
+    if (isDatabaseConnectionError(error)) {
+      logger.warn('数据库连接不可用，删除案卷失败', { id, message: error.message });
+      throw new AppError(
+        '数据库连接失败，请在 server/.env 中配置正确的 DB_PASSWORD 并重启服务',
+        503,
+        true
+      );
+    }
     logger.error('删除案卷失败', { id, message: error.message });
     throw new AppError('删除案卷失败', 500, true);
   }

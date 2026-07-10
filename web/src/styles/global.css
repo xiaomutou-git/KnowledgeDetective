@@ -2103,11 +2103,17 @@ button {
   border-radius: 2px;
 }
 
-.option:hover:not(.correct):not(.wrong) {
+.option:hover:not(.correct):not(.wrong):not(.selected) {
   background: var(--paper-0);
   border-left-color: var(--vermilion);
   border-color: var(--paper-border);
   box-shadow: 0 2px 8px rgba(26, 26, 26, 0.04);
+}
+
+.option.selected {
+  background: rgba(184, 58, 43, 0.06);
+  border-left-color: var(--vermilion);
+  border-color: var(--vermilion);
 }
 
 .option-label {
@@ -2118,7 +2124,8 @@ button {
   letter-spacing: -0.01em;
 }
 
-.option:hover:not(.correct):not(.wrong) .option-label {
+.option:hover:not(.correct):not(.wrong):not(.selected) .option-label,
+.option.selected .option-label {
   color: var(--vermilion);
 }
 

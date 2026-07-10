@@ -67,11 +67,37 @@ export function createApp(): Application {
   // 5. 注册 API 路由
   registerRoutes(app);
 
-  // 6. 静态文件服务（指向前端构建产物 web/dist）
+  /**
+   * 6. 本地管理后台静态页面
+   * @description 该页面仅用于本地调试，不提交到 GitHub
+   * - 路径固定为 server/public/admin，避免受 staticRoot 配置影响
+   * - 访问 /admin 时自动返回 index.html
+   */
+  const adminStaticPath = path.resolve(__dirname, '../public/admin');
+  app.use('/admin', express.static(adminStaticPath));
+  app.get('/admin', (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.sendFile(path.join(adminStaticPath, 'index.html'), (err) => {
+        if (err) {
+          logger.warn('发送管理后台页面失败', { message: err.message });
+          next();
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // 7. 静态文件服务（指向前端构建产物 web/dist）
   app.use(express.static(appConfig.staticRoot));
 
-  // 7. SPA 页面回退：所有非 /api 请求返回 index.html，由 React 前端路由接管
-  app.get('*', (_req: Request, res: Response, next: NextFunction) => {
+  // 8. SPA 页面回退：所有非 /api 请求返回 index.html，由 React 前端路由接管
+  app.get('*', (req: Request, res: Response, next: NextFunction) => {
+    // 避免 API 未匹配路径落到此处返回 index.html，应交给后续 404 处理
+    if (req.path.startsWith(`${appConfig.apiPrefix}/`)) {
+      return next();
+    }
+
     try {
       res.sendFile(path.join(appConfig.staticRoot, SPA_FALLBACK_FILE), (err) => {
         if (err) {
@@ -84,10 +110,10 @@ export function createApp(): Application {
     }
   });
 
-  // 8. 404 路由未找到处理
+  // 9. 404 路由未找到处理
   app.use(notFoundHandler);
 
-  // 9. 全局错误处理（必须放在最后）
+  // 10. 全局错误处理（必须放在最后）
   app.use(globalErrorHandler);
 
   return app;

@@ -80,7 +80,13 @@ export function globalErrorHandler(
   // 判断是否为业务异常
   const isAppError = err instanceof AppError;
   const statusCode = isAppError ? err.statusCode : 500;
-  const message = err.message || '服务器内部错误';
+
+  // 生产环境下，非业务异常隐藏原始错误信息，避免泄露数据库结构、堆栈等敏感内容
+  const message = isAppError
+    ? err.message
+    : appConfig.isProduction
+      ? '服务器内部错误'
+      : err.message || '服务器内部错误';
 
   // 未记录过的错误写入日志
   if (!isAppError || !err.isLogged) {
