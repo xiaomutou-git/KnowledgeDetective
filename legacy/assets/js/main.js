@@ -77,6 +77,20 @@
     '/play': '/play.html'
   };
 
+  /**
+   * 判断当前是否运行在 GitHub Pages 环境
+   * @description 通过检测主机名是否以 github.io 结尾来判断
+   * @returns {boolean} 是否为 GitHub Pages 环境
+   */
+  function isGitHubPagesEnvironment() {
+    try {
+      return window.location.hostname.indexOf('github.io') !== -1;
+    } catch (err) {
+      console.warn('[main.js] 判断运行环境失败：', err);
+      return false;
+    }
+  }
+
   /* =========================================================
      链接处理
      ========================================================= */

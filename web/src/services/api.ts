@@ -228,6 +228,52 @@ async function handleErrorResponse(response: Response): Promise<never> {
 }
 
 /**
+ * 文件上传解析响应
+ * @description 后端 /api/upload/parse 返回的文本解析结果
+ */
+export interface UploadParseResponse {
+  /** 原始文件名 */
+  originalName: string;
+  /** 文件大小（字节） */
+  size: number;
+  /** 文件 MIME 类型 */
+  mimetype: string;
+  /** 解析后的纯文本内容 */
+  text: string;
+  /** 文本字符数 */
+  charCount: number;
+}
+
+/**
+ * 上传并解析文件（支持 PDF / Word / TXT）
+ * @description 将文件提交到后端 /api/upload/parse，由后端提取文本内容
+ * @param file - 用户选择的文件对象
+ * @returns {Promise<UploadParseResponse>} 解析结果
+ * @throws {ApiError} 网络错误、文件类型不支持或解析失败时抛出
+ */
+export async function uploadFile(file: File): Promise<UploadParseResponse> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetchWithTimeout(`${API_BASE_URL}/upload/parse`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      await handleErrorResponse(response);
+    }
+
+    const data = (await response.json()) as ApiResponse<UploadParseResponse>;
+    return data.data;
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError('上传文件失败', 0, err instanceof Error ? err.message : String(err));
+  }
+}
+
+/**
  * 检查服务器健康状态
  * @description 调用 /api/health 接口确认代理服务器与 AI 配置是否可用。
  * @returns {Promise<HealthResponse>} 健康检查结果

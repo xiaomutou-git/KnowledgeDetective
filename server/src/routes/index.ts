@@ -15,6 +15,7 @@ import { Application } from 'express';
 import healthRoutes from './healthRoutes';
 import caseRoutes from './caseRoutes';
 import gameRoutes from './gameRoutes';
+import uploadRoutes from './uploadRoutes';
 import { appConfig } from '../config/app';
 
 /**
@@ -34,7 +35,7 @@ export function registerRoutes(app: Application): void {
 
   /**
    * 案卷路由
-   * @endpoint GET /api/cases, GET /api/cases/:id
+   * @endpoint GET /api/cases, GET /api/cases/:id, DELETE /api/cases/:id
    */
   app.use(`${prefix}/cases`, caseRoutes);
 
@@ -43,4 +44,10 @@ export function registerRoutes(app: Application): void {
    * @endpoint GET/POST /api/games, POST /api/games/generate, POST /api/games/:id/complete
    */
   app.use(`${prefix}/games`, gameRoutes);
+
+  /**
+   * 文件上传路由
+   * @endpoint POST /api/upload/parse
+   */
+  app.use(`${prefix}/upload`, uploadRoutes);
 }

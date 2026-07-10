@@ -12,7 +12,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { listCases, getCaseById } from '../services/caseService';
+import { listCases, getCaseById, deleteCase } from '../services/caseService';
 import { AppError } from '../middlewares/errorHandler';
 import { CaseFilter } from '../models/caseModel';
 
@@ -83,6 +83,40 @@ export async function getCaseByIdController(
     res.status(200).json({
       success: true,
       data: caseItem
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * 删除案卷
+ * @description 处理 DELETE /api/cases/:id，删除指定案卷及关联游戏记录
+ * @param {Request} req - Express 请求对象
+ * @param {Response} res - Express 响应对象
+ * @param {NextFunction} next - 下一个中间件函数
+ * @returns {Promise<void>}
+ * @throws {AppError} 当案卷 ID 非法、案卷不存在或删除失败时抛出
+ */
+export async function deleteCaseController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      throw new AppError('案卷 ID 必须是数字', 400, true);
+    }
+
+    const deleted = await deleteCase(id);
+    if (!deleted) {
+      throw new AppError('案卷不存在', 404, true);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: '案卷已删除'
     });
   } catch (err) {
     next(err);

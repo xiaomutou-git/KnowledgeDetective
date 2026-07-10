@@ -75,6 +75,94 @@ ${truncated}
 }
 
 /**
+ * 校验 AI 生成的案卷结构是否完整
+ * @description 对 AI 返回的 JSON 进行最小必填字段校验，防止不完整数据写入数据库
+ * @param {unknown} data - AI 返回的原始对象
+ * @returns {CreateCaseInput} 校验通过后的结构化输入
+ * @throws {AppError} 当缺少必填字段或类型不匹配时抛出
+ */
+function validateGeneratedCase(data: unknown): CreateCaseInput {
+  if (!data || typeof data !== 'object') {
+    throw new AppError('AI 返回数据不是有效的 JSON 对象', 500, true);
+  }
+
+  const d = data as Record<string, unknown>;
+
+  function assertString(value: unknown, name: string): string {
+    if (typeof value !== 'string' || value.trim() === '') {
+      throw new AppError(`AI 返回数据缺少或无效字段：${name}`, 500, true);
+    }
+    return value.trim();
+  }
+
+  function assertArray(value: unknown, name: string, minLength = 0): unknown[] {
+    if (!Array.isArray(value) || value.length < minLength) {
+      throw new AppError(`AI 返回数据字段 ${name} 必须是长度至少为 ${minLength} 的数组`, 500, true);
+    }
+    return value;
+  }
+
+  function assertObject(value: unknown, name: string): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new AppError(`AI 返回数据字段 ${name} 必须是对象`, 500, true);
+    }
+    return value as Record<string, unknown>;
+  }
+
+  const input: CreateCaseInput = {
+    title: assertString(d.title, 'title'),
+    subtitle: typeof d.subtitle === 'string' ? d.subtitle.trim() : '',
+    category: typeof d.category === 'string' ? d.category.trim() : '综合',
+    difficulty: typeof d.difficulty === 'number' && d.difficulty >= 1 && d.difficulty <= 5 ? d.difficulty : 1,
+    scene: assertString(d.scene, 'scene'),
+    clues: assertArray(d.clues, 'clues', 1).map((item, index) => {
+      const clue = assertObject(item, `clues[${index}]`);
+      return {
+        title: assertString(clue.title, `clues[${index}].title`),
+        hint: typeof clue.hint === 'string' ? clue.hint.trim() : '点击查看',
+        content: assertString(clue.content, `clues[${index}].content`),
+        insight: assertString(clue.insight, `clues[${index}].insight`)
+      };
+    }),
+    question: assertString(d.question, 'question'),
+    options: assertArray(d.options, 'options', 2).map((item, index) => {
+      const opt = assertObject(item, `options[${index}]`);
+      return {
+        label: assertString(opt.label, `options[${index}].label`).toUpperCase(),
+        text: assertString(opt.text, `options[${index}].text`),
+        correct: opt.correct === true
+      };
+    }),
+    analysis: {
+      body: assertString((assertObject(d.analysis, 'analysis')).body, 'analysis.body'),
+      kps: assertArray((assertObject(d.analysis, 'analysis')).kps, 'analysis.kps').map((item) =>
+        typeof item === 'string' ? item : String(item)
+      ),
+      formula: typeof (assertObject(d.analysis, 'analysis')).formula === 'string'
+        ? (assertObject(d.analysis, 'analysis')).formula as string
+        : ''
+    },
+    card: {
+      tag: assertString((assertObject(d.card, 'card')).tag, 'card.tag'),
+      title: assertString((assertObject(d.card, 'card')).title, 'card.title'),
+      subtitle: typeof (assertObject(d.card, 'card')).subtitle === 'string'
+        ? (assertObject(d.card, 'card')).subtitle as string
+        : '',
+      definition: assertString((assertObject(d.card, 'card')).definition, 'card.definition'),
+      explanation: assertString((assertObject(d.card, 'card')).explanation, 'card.explanation'),
+      application: assertString((assertObject(d.card, 'card')).application, 'card.application')
+    }
+  };
+
+  const correctOptions = input.options.filter((opt) => opt.correct);
+  if (correctOptions.length !== 1) {
+    throw new AppError('AI 返回的选项必须且只能有一个正确答案', 500, true);
+  }
+
+  return input;
+}
+
+/**
  * 调用 AI API 生成推理剧本
  * @description 使用原生 http/https 模块发送 POST 请求，解析返回的 JSON 内容
  * @param {string} articleText - 用户输入的文章内容
@@ -205,7 +293,8 @@ export async function generateCase(articleText: string): Promise<CreateCaseInput
   logger.info(`收到 AI 生成请求，文本长度：${text.length}`);
 
   try {
-    const result = await callAiApi(text);
+    const rawResult = await callAiApi(text);
+    const result = validateGeneratedCase(rawResult);
     logger.info(`AI 生成成功：${result.title}`);
     return result;
   } catch (err) {

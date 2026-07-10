@@ -1,5 +1,19 @@
 # 环境变量配置文件
 .env
+.env.local
+.env.*.local
+.env.development
+.env.production
+server/.env
+server/.env.local
+server/.env.*.local
+server/.env.development
+server/.env.production
+web/.env
+web/.env.local
+web/.env.*.local
+web/.env.development
+web/.env.production
 
 # Node.js 依赖
 node_modules/
@@ -29,6 +43,9 @@ web/dist/
 
 # 验证截图目录
 verification/
+
+# 本地管理后台（不上传 GitHub）
+server/public/admin/
 
 # 测试覆盖率
 coverage/

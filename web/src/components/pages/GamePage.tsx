@@ -12,7 +12,7 @@ import type { PageId } from '../../types/app';
 import type { Case, Clue, ArchiveRecord } from '../../types/case';
 import type { GamePhase, GenStep } from '../../types/game';
 import { findCaseById as findSeedCaseById } from '../../data/seedCases';
-import { generateCaseFromText, ApiError } from '../../services/api';
+import { generateCaseFromText, uploadFile, ApiError } from '../../services/api';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { FadeIn } from '../common/FadeIn';
 
@@ -56,6 +56,7 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [customText, setCustomText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [genSteps, setGenSteps] = useState<GenStep[]>(GEN_STEPS);
   const [genQuote, setGenQuote] = useState('');
@@ -186,32 +187,67 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
 
   /**
    * 处理文件选择
+   * @description 优先调用后端 /api/upload/parse 解析 PDF / Word / TXT 文件；
+   *              后端不可用时降级为本地 FileReader 读取纯文本。
    * @param event - 文件选择事件
    */
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const result = e.target?.result;
-          if (typeof result === 'string') {
-            setCustomText(result);
+      // 简单 MIME / 扩展名校验，与后端保持一致
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      const isSupported =
+        file.type === 'application/pdf' ||
+        file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        file.type === 'text/plain' ||
+        ext === 'pdf' ||
+        ext === 'docx' ||
+        ext === 'txt';
+
+      if (!isSupported) {
+        setError('不支持的文件类型，仅支持 PDF、Word（.docx）、TXT。');
+        return;
+      }
+
+      setIsUploading(true);
+      setError(null);
+
+      try {
+        const result = await uploadFile(file);
+        setCustomText(result.text);
+      } catch (apiErr) {
+        console.warn('[GamePage] 后端解析文件失败，尝试本地读取：', apiErr);
+        // 后端不可用时降级本地读取（仅对 TXT 有效）
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const text = e.target?.result;
+            if (typeof text === 'string') {
+              setCustomText(text);
+            }
+          } catch (err) {
+            console.warn('[GamePage] 本地读取文件内容失败：', err);
+            setError('读取文件内容失败，请尝试复制文本后粘贴。');
           }
-        } catch (err) {
-          console.warn('[GamePage] 读取文件内容失败：', err);
-          setError('读取文件内容失败，请尝试复制文本后粘贴。');
-        }
-      };
-      reader.onerror = () => {
-        setError('文件读取出错，请检查文件格式。');
-      };
-      reader.readAsText(file);
+        };
+        reader.onerror = () => {
+          setError('文件读取出错，请检查文件格式。');
+        };
+        reader.readAsText(file);
+      }
     } catch (err) {
       console.warn('[GamePage] 处理文件选择失败：', err);
       setError('处理文件失败，请直接粘贴文本。');
+    } finally {
+      setIsUploading(false);
+      // 清空 input 值，允许重复选择同一文件
+      try {
+        event.target.value = '';
+      } catch (clearErr) {
+        console.warn('[GamePage] 清空文件输入失败：', clearErr);
+      }
     }
   }, []);
 
@@ -406,10 +442,10 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
                   style={{ display: 'none' }}
                   onChange={handleFileChange}
                 />
-                <button className="btn-ghost" onClick={triggerFileInput} type="button" disabled={isLoading}>
-                  <span>上传文件</span>
+                <button className="btn-ghost" onClick={triggerFileInput} type="button" disabled={isLoading || isUploading}>
+                  <span>{isUploading ? '解析中…' : '上传文件'}</span>
                 </button>
-                <button className="btn-primary" onClick={handleGenerate} type="button" disabled={isLoading}>
+                <button className="btn-primary" onClick={handleGenerate} type="button" disabled={isLoading || isUploading}>
                   <span>生成剧本</span>
                   <span className="arrow">→</span>
                 </button>

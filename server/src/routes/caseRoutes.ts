@@ -11,11 +11,12 @@
  */
 
 import { Router } from 'express';
-import { getCases, getCaseByIdController } from '../controllers/caseController';
+import { getCases, getCaseByIdController, deleteCaseController } from '../controllers/caseController';
+import { adminAuthMiddleware } from '../middlewares/adminAuth';
 
 /**
  * 案卷路由实例
- * @description 定义 / 与 /:id 路径下的 GET 接口
+ * @description 定义 / 与 /:id 路径下的 GET、DELETE 接口
  */
 const router: Router = Router();
 
@@ -29,6 +30,13 @@ router.get('/', getCases);
  * GET /:id - 案卷详情
  * @description 根据 ID 获取单个案卷
  */
-router.get('/:id', getCaseByIdController);
+router.get('/:id', getCaseByIdController)
+
+/**
+ * DELETE /:id - 删除案卷
+ * @description 根据 ID 删除案卷，关联游戏记录由外键级联删除
+ *              该操作受管理员 API Key 保护，防止未授权删除
+ */
+router.delete('/:id', adminAuthMiddleware, deleteCaseController);
 
 export default router;

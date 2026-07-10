@@ -71,20 +71,31 @@ export async function query(
 
 /**
  * 检查数据库连接健康状态
- * @description 执行 SELECT 1 验证数据库是否可达
+ * @description 执行 SELECT 1 验证数据库是否可达，并将结果缓存 5 秒，避免频繁探测
  * @returns {Promise<{ healthy: boolean; message: string }>} 健康检查结果
  */
+let cachedHealth: { healthy: boolean; message: string; checkedAt: number } | null = null;
+const HEALTH_CACHE_TTL_MS = 5000;
+
 export async function checkDatabaseHealth(): Promise<{ healthy: boolean; message: string }> {
+  const now = Date.now();
+  if (cachedHealth && now - cachedHealth.checkedAt < HEALTH_CACHE_TTL_MS) {
+    return { healthy: cachedHealth.healthy, message: cachedHealth.message };
+  }
+
   try {
     const connectionPool = getPool();
     const [rows] = await connectionPool.execute('SELECT 1 AS ok');
     const result = rows as mysql.RowDataPacket[];
     if (result && result.length > 0 && result[0].ok === 1) {
+      cachedHealth = { healthy: true, message: '数据库连接正常', checkedAt: now };
       return { healthy: true, message: '数据库连接正常' };
     }
+    cachedHealth = { healthy: false, message: '数据库健康检查返回异常', checkedAt: now };
     return { healthy: false, message: '数据库健康检查返回异常' };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    cachedHealth = { healthy: false, message: `数据库连接失败: ${message}`, checkedAt: now };
     return { healthy: false, message: `数据库连接失败: ${message}` };
   }
 }
@@ -98,6 +109,7 @@ export async function closePool(): Promise<void> {
   if (pool) {
     await pool.end();
     pool = null;
+    cachedHealth = null;
     logger.info('MySQL 连接池已关闭');
   }
 }

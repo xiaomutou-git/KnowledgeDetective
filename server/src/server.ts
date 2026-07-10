@@ -13,7 +13,7 @@
  */
 
 import { createApp } from './app';
-import { port, getServerUrl } from './config/app';
+import { port, getServerUrl, appConfig } from './config/app';
 import { closePool } from './db/connection';
 import { logStartupBanner, logger } from './utils/logger';
 
@@ -57,29 +57,34 @@ function startServer(): void {
     });
   }
 
-  // 监听系统终止信号
-  process.on('SIGINT', () => {
-    void gracefulShutdown('SIGINT');
-  });
-
-  process.on('SIGTERM', () => {
-    void gracefulShutdown('SIGTERM');
-  });
-
-  // 捕获未处理的异常与拒绝的 Promise
-  process.on('uncaughtException', (err) => {
-    logger.error('未捕获的异常', {
-      message: err.message,
-      stack: err.stack
+  // 测试环境下跳过进程级事件监听，避免 Vitest 清理阶段因监听器残留异常退出
+  if (!appConfig.isTest) {
+    // 监听系统终止信号
+    process.on('SIGINT', () => {
+      void gracefulShutdown('SIGINT');
     });
-    void gracefulShutdown('uncaughtException');
-  });
 
-  process.on('unhandledRejection', (reason) => {
-    logger.error('未处理的 Promise 拒绝', {
-      reason: reason instanceof Error ? reason.message : String(reason)
+    process.on('SIGTERM', () => {
+      void gracefulShutdown('SIGTERM');
     });
-  });
+
+    // 捕获未处理的异常与拒绝的 Promise
+    process.on('uncaughtException', (err) => {
+      logger.error('未捕获的异常', {
+        message: err.message,
+        stack: err.stack
+      });
+      void gracefulShutdown('uncaughtException');
+    });
+
+    process.on('unhandledRejection', (reason) => {
+      logger.error('未处理的 Promise 拒绝', {
+        reason: reason instanceof Error ? reason.message : String(reason)
+      });
+      // 未处理的 Promise 拒绝可能导致状态不一致，安全起见执行优雅关闭并退出进程
+      void gracefulShutdown('unhandledRejection');
+    });
+  }
 }
 
 // 启动服务

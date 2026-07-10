@@ -130,20 +130,25 @@ export async function completeGameController(
 
 /**
  * 获取游戏历史列表
- * @description 处理 GET /api/games
- * @param {Request} _req - Express 请求对象（未使用）
+ * @description 处理 GET /api/games?userId=xxx，仅返回该用户的游戏记录
+ * @param {Request} req - Express 请求对象
  * @param {Response} res - Express 响应对象
  * @param {NextFunction} next - 下一个中间件函数
  * @returns {Promise<void>}
- * @throws {AppError} 当查询失败时抛出
+ * @throws {AppError} 当缺少 userId 或查询失败时抛出
  */
 export async function getGames(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
   try {
-    const games = await listGames();
+    const userId = req.query.userId;
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new AppError('请提供 userId 查询参数', 400, true);
+    }
+
+    const games = await listGames(userId.trim());
 
     res.status(200).json({
       success: true,
