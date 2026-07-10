@@ -13,6 +13,21 @@ import { getSeedCases, findCaseById as findSeedCaseById } from '../data/seedCase
 import { fetchCases, ApiError } from '../services/api';
 
 /**
+ * 判断当前是否运行在 GitHub Pages 环境
+ * @description GitHub Pages 仅托管前端静态资源，没有后端服务，
+ *              此时应直接加载本地种子数据，避免向后端发送注定失败的请求。
+ * @returns {boolean} 是否为 GitHub Pages 环境
+ */
+function isGitHubPages(): boolean {
+  try {
+    return typeof window !== 'undefined' && window.location.hostname.includes('github.io');
+  } catch (err) {
+    console.warn('[useCases] 环境检测失败：', err);
+    return false;
+  }
+}
+
+/**
  * useCases 返回值
  */
 export interface UseCasesReturn {
@@ -78,6 +93,16 @@ export function useCases(): UseCasesReturn {
     let cancelled = false;
 
     const run = async () => {
+      // GitHub Pages 仅部署前端静态资源，直接加载本地种子数据，避免无意义的后端 404 请求
+      if (isGitHubPages()) {
+        if (!cancelled) {
+          setCases([...getSeedCases()]);
+          setIsLocalFallback(true);
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
