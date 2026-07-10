@@ -11,21 +11,7 @@ import { useEffect, useState, useCallback } from 'react';
 import type { Case } from '../types/case';
 import { getSeedCases, findCaseById as findSeedCaseById } from '../data/seedCases';
 import { fetchCases, ApiError } from '../services/api';
-
-/**
- * 判断当前是否运行在 GitHub Pages 环境
- * @description GitHub Pages 仅托管前端静态资源，没有后端服务，
- *              此时应直接加载本地种子数据，避免向后端发送注定失败的请求。
- * @returns {boolean} 是否为 GitHub Pages 环境
- */
-function isGitHubPages(): boolean {
-  try {
-    return typeof window !== 'undefined' && window.location.hostname.includes('github.io');
-  } catch (err) {
-    console.warn('[useCases] 环境检测失败：', err);
-    return false;
-  }
-}
+import { isGitHubPages } from '../utils/env';
 
 /**
  * useCases 返回值

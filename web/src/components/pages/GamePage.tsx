@@ -14,6 +14,7 @@ import type { GamePhase, GenStep } from '../../types/game';
 import { findCaseById as findSeedCaseById } from '../../data/seedCases';
 import { generateCaseFromText, uploadFile, ApiError } from '../../services/api';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { isGitHubPages } from '../../utils/env';
 import { FadeIn } from '../common/FadeIn';
 
 /** 生成步骤配置 */
@@ -143,6 +144,19 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
       return;
     }
 
+    // GitHub Pages 为纯静态托管，没有后端 AI 服务，直接加载本地案卷作为演示
+    if (isGitHubPages()) {
+      const fallback = cases[text.length % cases.length];
+      if (fallback) {
+        setCurrentCase(fallback);
+        setPhase('scene');
+        setError('演示环境：已为你加载一份本地精选案卷。如需 AI 生成，请在本地启动后端服务。');
+      } else {
+        setError('演示环境：暂无可用案卷。');
+      }
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setPhase('generating');
@@ -176,6 +190,8 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
       setPhase('select');
       if (err instanceof ApiError) {
         setError(`生成失败：${err.message}`);
+      } else if (err instanceof Error) {
+        setError(`生成失败：${err.message}`);
       } else {
         setError('生成失败，请检查网络或稍后重试。');
       }
@@ -195,6 +211,12 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
     try {
       const file = event.target.files?.[0];
       if (!file) return;
+
+      // GitHub Pages 为纯静态托管，没有后端解析服务，PDF / Word 无法本地解析
+      if (isGitHubPages()) {
+        setError('演示环境：不支持文件上传。请在本地启动后端服务，或选择下方精选案卷。');
+        return;
+      }
 
       // 简单 MIME / 扩展名校验，与后端保持一致
       const ext = file.name.split('.').pop()?.toLowerCase();
@@ -442,7 +464,13 @@ export const GamePage: React.FC<GamePageProps> = ({ cases, initialCaseId, onNavi
                   style={{ display: 'none' }}
                   onChange={handleFileChange}
                 />
-                <button className="btn-ghost" onClick={triggerFileInput} type="button" disabled={isLoading || isUploading}>
+                <button
+                  className="btn-ghost"
+                  onClick={triggerFileInput}
+                  type="button"
+                  disabled={isLoading || isUploading || isGitHubPages()}
+                  title={isGitHubPages() ? '演示环境不支持文件上传' : '上传 PDF / Word / TXT 文件'}
+                >
                   <span>{isUploading ? '解析中…' : '上传文件'}</span>
                 </button>
                 <button className="btn-primary" onClick={handleGenerate} type="button" disabled={isLoading || isUploading}>
